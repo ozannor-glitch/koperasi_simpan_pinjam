@@ -28,14 +28,14 @@ class AuthController extends Controller
 
         if ($user) {
             // verifikasi password yang diinputkan dengan password yang ada di database
-            if(password_verify($request->password, $user->password)) {
+            if (password_verify($request->password, $user->password)) {
                 // jika verifikasi berhasil, buat token untuk user dan kembalikan token tersebut dalam response
                 $token = $user->createToken('user-token');
                 return response()->json([
                     'token' => $token,
                     'message' => 'Login berhasil.',
                 ], 200);
-            }else {
+            } else {
                 // jika verifikasi gagal, kembalikan response dengan status 401 (Unauthorized) dan pesan error
                 return response()->json([
                     'token' => null,
@@ -57,11 +57,19 @@ class AuthController extends Controller
             "email" => "required|email|unique:users,email",
             "password" => "required|min:6",
             "nik" => "required|unique:users,nik",
-            "KTP" => "required|unique:users,KTP",
+            // Validasi file: harus gambar, maksimal 2MB
+            "KTP" => "required|image|mimes:jpeg,png,jpg|max:2048|unique:users,KTP",
         ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        // Proses Upload Gambar
+        $ktpPath = null;
+        if ($request->hasFile('KTP')) {
+            // Menyimpan file ke folder 'public/ktp'
+            $ktpPath = $request->file('KTP')->store('ktp', 'public');
         }
 
         $user = User::create([
@@ -69,12 +77,12 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'nik' => $request->nik,
-            'KTP' => $request->KTP,
+            'KTP' => $ktpPath, // Simpan path/nama filenya saja di database
             'role' => 'user',
             'status' => 'active',
         ]);
 
-        $token = $user->createToken('user-token');
+        $token = $user->createToken('user-token')->plainTextToken;
 
         return response()->json([
             'token' => $token,
@@ -89,6 +97,5 @@ class AuthController extends Controller
             'message' => 'Anda berhasil logout.'
         ]);
     }
-
 }
 //cek
