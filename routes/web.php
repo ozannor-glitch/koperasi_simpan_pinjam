@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 // CONTROLLERS VISITOR
 use App\Http\Controllers\visitor\HomeController;
-use App\Http\Controllers\visitor\AuthController;
+use App\Http\Controllers\visitor\AuthController as VisitorAuthController;
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -20,15 +20,30 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Route::get('/login', [AuthController::class, 'index'])->name('login');
 
 
-Route::get('/login',[AuthController::class,'login'])->name('login');
-Route::post('/login',[AuthController::class,'loginPost']);
+Route::get('/login',[VisitorAuthController::class,'login'])->name('login');
+Route::post('/login',[VisitorAuthController::class,'loginPost']);
 
-Route::get('/register',[AuthController::class,'register'])->name('register');
-Route::post('/register',[AuthController::class,'registerPost']);
+Route::get('/register',[VisitorAuthController::class,'register'])->name('register');
+Route::post('/register',[VisitorAuthController::class,'registerPost']);
 
-Route::post('/logout',[AuthController::class,'logout'])->name('logout');
+Route::post('/logout',[VisitorAuthController::class,'logout'])->name('logout');
 
 
 Route::get('/dashboard', function () {
     return view('dashboard.index');
 })->middleware('auth')->name('dashboard');
+
+
+//Bagian Admin
+Route::prefix('auth')->group(function () {
+    // login
+    Route::get('login', [AuthController::class, 'login']);
+    Route::post('login', [AuthController::class, 'authenticate']);
+    Route::get('logout', [AuthController::class, 'logout']);
+});
+
+Route::middleware([CheckAdmin::class])->prefix('superadmin')->name('superadmin.')->group(function () {
+
+Route::get('dashboard', [DashboardController::class,'index']);
+
+});
