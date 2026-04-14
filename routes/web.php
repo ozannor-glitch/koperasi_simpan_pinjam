@@ -13,9 +13,22 @@ Route::prefix('auth')->group(function () {
     Route::get('logout', [AuthController::class, 'logout']);
 });
 
-Route::middleware([CheckAdmin::class])->prefix('superadmin')->name('superadmin.')->group(function () {
-
-Route::get('dashboard', [DashboardController::class,'index']);
-
+//Super Admin
+Route::middleware(['auth', 'role:super_admin'])->group(function () {
+    Route::get('/superadmin/dashboard',function(){
+    return view('superadmin.pages.dashboard.index');
+    });
+});
+//Admin Keuangan
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/adminkeuangan/dashboard',function(){
+    return view('adminkeuangan.pages.dashboard.index');
+    });
+});
+//Teller
+Route::middleware(['auth', 'role:teller'])->group(function () {
+    Route::get('/teller/dashboard',function(){
+    return view('teller.pages.dashboard.index');
+    });
 });
 

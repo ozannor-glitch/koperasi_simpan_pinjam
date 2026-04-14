@@ -12,8 +12,8 @@
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     </head>
     <body class="sb-nav-fixed">
-        @include('superadmin.components.topbar')
-        @include('superadmin.components.sidenav')
+        @include('adminkeuangan.components.topbar')
+        @include('adminkeuangan.components.sidenav')
 
         <footer class="py-4 bg-light mt-auto">
                     <div class="container-fluid px-4">

@@ -16,32 +16,34 @@ class AuthController extends Controller
     }
 
 
-    public function authenticate(Request $request)
+   public function authenticate(Request $request)
 {
-    $validator = Validator::make($request->all(), [
-        "email" => "required|email",
-        "password" => "required"
-    ]);
-
-    if ($validator->fails()) {
-        return redirect()->back()->withErrors($validator)->withInput();
-    }
-
-    $credentials = $request->only("email", "password");
-
-    if (Auth::attempt($credentials)) {
-        $request->session()->regenerate(); // 🔥 penting untuk security
-
-        return redirect()->to("/superadmin/dashboard")
-            ->withSuccess("Selamat Datang! " . Auth::user()->name);
-    }
-
-    return redirect()->back()->withErrors("Email atau password salah!");
+    $credentials= $request->only("email","password");
+        if(Auth::attempt($credentials)){
+            $request->session()->regenerate();
+            $user=Auth::user();
+            switch($user->role){
+                case'super_admin':
+                    return redirect('/superadmin/dashboard');
+                case'admin':
+                    return redirect('/adminkeuangan/dashboard');
+                case'teller':
+                    return redirect('/teller/dashboard');
+                default:
+                    Auth::logout();
+                    return redirect('/auth/login')->withErrors('Role tidak Valid');
+            }
+                return back()->withErrors('Email atau Password salah');
+            }
 }
-public function logout()
-    {
-        Auth::logout();
-        return redirect()->to("/auth/login")->withSuccess("Logout berhasil!");
-    }
+public function logout(Request $request)
+{
+    Auth::logout();
+
+    $request->session()->invalidate(); // 🔥 hapus session
+    $request->session()->regenerateToken(); // 🔥 keamanan CSRF
+
+    return redirect('/auth/login')->with('success', 'Logout berhasil!');
+}
 }
 
