@@ -6,6 +6,35 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Middleware\CheckAdmin;
 use Illuminate\Support\Facades\Route;
 
+// CONTROLLERS VISITOR
+use App\Http\Controllers\visitor\HomeController;
+use App\Http\Controllers\visitor\AuthController as VisitorAuthController;
+
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+
+
+
+
+// ROUTE LOGIN
+// Route::get('/login', [AuthController::class, 'index'])->name('login');
+
+
+Route::get('/login',[VisitorAuthController::class,'login'])->name('login');
+Route::post('/login',[VisitorAuthController::class,'loginPost']);
+
+Route::get('/register',[VisitorAuthController::class,'register'])->name('register');
+Route::post('/register',[VisitorAuthController::class,'registerPost']);
+
+Route::post('/logout',[VisitorAuthController::class,'logout'])->name('logout');
+
+
+Route::get('/dashboard', function () {
+    return view('dashboard.index');
+})->middleware('auth')->name('dashboard');
+
+
 //Bagian Admin
 Route::prefix('auth')->group(function () {
     // login
