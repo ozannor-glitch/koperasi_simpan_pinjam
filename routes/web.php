@@ -35,14 +35,12 @@ Route::middleware(['auth', 'role:teller'])->group(function () {
 
 //CRUD Super Admin
 Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->group(function () {
-
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{id}', [ControllersAdminUserController::class, 'destroy'])->name('users.destroy');
-
+            Route::get('/user', [UserController::class, 'index'])->name('user.index');
+            Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
+            Route::post('user', [UserController::class, 'store'])->name('user.store');
+            Route::get('user/{id}/edit', [UserController::class, 'edit'])->name('user.edit');
+            Route::put('update/{id}', [UserController::class,'update'])->name('user.update');
+            Route::delete('destroy/{id}', [UserController::class,'destroy'])->name('user.destroy');
 });
 
 

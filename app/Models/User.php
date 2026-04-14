@@ -14,6 +14,18 @@ class User extends Authenticatable
      /**
      * Run the database seeds.
      */
+    protected $table = "users";
+
+    protected $fillable = [
+    'KTP',
+    'nik',
+    'name',
+    'email',
+    'password',
+    'role',
+    'status',
+];
+
     public function run(): void
     {
         User::create([

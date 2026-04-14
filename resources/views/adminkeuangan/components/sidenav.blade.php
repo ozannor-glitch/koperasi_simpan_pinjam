@@ -15,6 +15,7 @@
                             @if(in_array(Auth::user()->role, ['super_admin','teller']))
                                 <li>Transaksi</li>
                             @endif
+
                             <li class="nav-item {{request()->routeIs('admin/statistic/*') ? 'active' : ''}}">
                                 <a class="nav-link" href="/superadmin/statistic">
                                     <i class="fa-solid fa-chart-line"></i>
