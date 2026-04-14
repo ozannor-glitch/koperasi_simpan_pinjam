@@ -1,4 +1,4 @@
-@extends('admin.components.index')
+@extends('superadmin.components.template')
 
 @section('title')
     Edit User
@@ -24,9 +24,9 @@
     </div>
 @endif
 
-    <form action="{{ route('user.store') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
+   <form action="{{ route('user.update', $user->id) }}" method="POST">
+    @csrf
+    @method('PUT')
 
          <div class="form-group">
                         <label for="KTP">Foto KTP</label>
@@ -87,7 +87,7 @@
 
         <div class="form-group">
             <button type="submit" class="btn btn-primary">Save</button>
-            <a href="/admin/major/" class="btn btn-secondary">Cancel</a>
+            <a href="/superadmin/user/" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 @endsection
