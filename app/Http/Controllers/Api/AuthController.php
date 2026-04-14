@@ -50,6 +50,38 @@ class AuthController extends Controller
         }
     }
 
+    public function register(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "name" => "required",
+            "email" => "required|email|unique:users,email",
+            "password" => "required|min:6",
+            "nik" => "required|unique:users,nik",
+            "KTP" => "required|unique:users,KTP",
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'nik' => $request->nik,
+            'KTP' => $request->KTP,
+            'role' => 'user',
+            'status' => 'active',
+        ]);
+
+        $token = $user->createToken('user-token');
+
+        return response()->json([
+            'token' => $token,
+            'message' => 'Registrasi berhasil.',
+        ], 201);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
