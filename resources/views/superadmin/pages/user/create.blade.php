@@ -67,6 +67,7 @@
                 <select name="role" class="form-control">
                     <option value="admin_keuangan">Admin Keuangan</option>
                     <option value="teller">Teller</option>
+                    <option value="anggota">Anggota</option> <!-- 🔥 tambah ini -->
                 </select>
             </div>
 

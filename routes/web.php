@@ -61,6 +61,12 @@ Route::middleware(['auth', 'role:teller'])->group(function () {
     return view('teller.pages.dashboard.index');
     });
 });
+// ANGGOTA
+Route::middleware(['auth', 'role:anggota'])->group(function () {
+    Route::get('/anggota/dashboard', function () {
+        return view('anggota.pages.dashboard.index');
+    });
+});
 
 //CRUD Super Admin
 Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->group(function () {

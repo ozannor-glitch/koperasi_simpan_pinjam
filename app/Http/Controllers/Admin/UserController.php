@@ -21,74 +21,95 @@ class UserController extends Controller
         return view('superadmin.pages.user.create');
     }
 
-        public function store(Request $request)
-        {
-            $request->validate([
-                'KTP' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-                'nik' => 'required|string|max:200',
-                'name' => 'required',
-                'email' => 'required|email|unique:users,email',
-                'password' => 'required|min:6',
-                'role' => 'required',
-            ]);
-
-            // 🔥 upload file
-            $ktpPath = null;
-            if ($request->hasFile('KTP')) {
-                $ktpPath = $request->file('KTP')->store('ktp', 'public');
-            }
-
-            User::create([
-                'KTP' => $ktpPath, // ✅ simpan path file
-                'nik' => $request->nik,
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'role' => $request->role,
-                'status' => 'active'
-            ]);
-
-            return redirect()->route('user.index')->with('success', 'User berhasil ditambahkan');
-        }
-
     public function edit($id)
-        {
-            $user = User::findOrFail($id);
-            return view('superadmin.pages.user.edit', compact('user'));
-        }
-
-    public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
 
-        $request->validate([
-            'KTP' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'nik' => 'required|string|max:200',
-            'name' => 'required',
-            'email' => "required|email|unique:users,email,$id",
-            'role' => 'required',
-        ]);
-
-        $data = [
-            'nik' => $request->nik,
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-        ];
-
-        // 🔥 update KTP kalau ada
-        if ($request->hasFile('KTP')) {
-            $data['KTP'] = $request->file('KTP')->store('ktp', 'public');
+        if ($user->role == 'super_admin') {
+            return back()->withErrors('Super Admin tidak bisa diedit');
         }
 
-        if (!empty($request->password)) {
-            $data['password'] = Hash::make($request->password);
-        }
-
-        $user->update($data);
-
-        return redirect()->route('user.index')->with('success', 'User berhasil diupdate');
+        return view('superadmin.pages.user.edit', compact('user'));
     }
+
+public function store(Request $request)
+{
+    // validasi umum
+    $rules = [
+        'name' => 'required',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|min:6',
+        'role' => 'required',
+    ];
+
+    // 🔥 tambahan kalau anggota
+    if ($request->role == 'anggota') {
+        $rules['KTP'] = 'required|image|mimes:jpeg,png,jpg|max:2048';
+        $rules['nik'] = 'required|string|max:200';
+    }
+
+    $request->validate($rules);
+
+    // upload KTP
+    $ktpPath = null;
+    if ($request->hasFile('KTP')) {
+        $ktpPath = $request->file('KTP')->store('ktp', 'public');
+    }
+
+    User::create([
+        'KTP' => $ktpPath,
+        'nik' => $request->nik,
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => $request->role,
+        'status' => 'active'
+    ]);
+
+    return redirect()->route('user.index')->with('success', 'User berhasil ditambahkan');
+}
+
+public function update(Request $request, $id)
+{
+    $user = User::findOrFail($id);
+
+    if ($user->role == 'super_admin') {
+    return back()->withErrors('Super Admin tidak bisa diedit');
+}
+
+    $rules = [
+        'name' => 'required',
+        'email' => "required|email|unique:users,email,$id",
+        'role' => 'required',
+    ];
+
+    // 🔥 kalau anggota
+    if ($request->role == 'anggota') {
+        $rules['nik'] = 'required|string|max:200';
+        $rules['KTP'] = 'nullable|image|mimes:jpeg,png,jpg|max:2048';
+    }
+
+    $request->validate($rules);
+
+    $data = [
+        'nik' => $request->nik,
+        'name' => $request->name,
+        'email' => $request->email,
+        'role' => $request->role,
+    ];
+
+    if ($request->hasFile('KTP')) {
+        $data['KTP'] = $request->file('KTP')->store('ktp', 'public');
+    }
+
+    if (!empty($request->password)) {
+        $data['password'] = Hash::make($request->password);
+    }
+
+    $user->update($data);
+
+    return redirect()->route('user.index')->with('success', 'User berhasil diupdate');
+}
 
 public function destroy($id)
 {
