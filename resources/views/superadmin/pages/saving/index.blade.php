@@ -57,34 +57,74 @@
 {{-- 🔥 HISTORI TRANSAKSI --}}
 <h4>Histori Transaksi</h4>
 
-<table class="table table-striped">
+<h4>Data Saldo Anggota</h4>
+
+<table class="table table-bordered">
     <tr>
         <th>Nama</th>
         <th>Jenis</th>
-        <th>Tipe</th>
-        <th>Jumlah</th>
-        <th>Aksi</th>
+        <th>Saldo</th>
+        <th>Aksi</th> {{-- 🔥 baru --}}
     </tr>
 
-    @foreach($transactions as $trx)
-    <tr>
-        <td>{{ $trx->user->name }}</td>
-        <td>{{ $trx->savingType->name }}</td>
-        <td>
-            <span class="badge bg-{{ $trx->transaction_type == 'setor' ? 'success' : 'danger' }}">
-                {{ $trx->transaction_type }}
-            </span>
-        </td>
-        <td>Rp {{ number_format($trx->amount) }}</td>
-        <td>
-            <form action="{{ route('superadmin.saving.destroy', $trx->id) }}" method="POST">
+   @foreach($savings as $s)
+<tr>
+    <td>{{ $s->user->name }}</td>
+    <td>{{ $s->savingType->name }}</td>
+    <td>Rp {{ number_format($s->balance) }}</td>
+
+    <!-- 🔥 FORM TARIK -->
+    <td>
+        @if($errors->any())
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ $errors->first() }}',
+                confirmButtonColor: '#d33'
+            });
+        </script>
+        @endif
+        <form action="{{ route('superadmin.saving.withdraw') }}" method="POST" style="display:flex; gap:5px;">
+            @csrf
+
+            <input type="hidden" name="user_id" value="{{ $s->user_id }}">
+            <input type="hidden" name="saving_type_id" value="{{ $s->saving_type_id }}">
+
+            <input type="number"
+       name="amount"
+       class="form-control form-control-sm"
+       style="width:100px;"
+       min="{{ $s->savingType->minimum_withdraw }}"
+       max="{{ $s->balance }}"
+       required>
+
+            <button class="btn btn-warning btn-sm">Tarik</button>
+        </form>
+    </td>
+
+    <!-- 🔥 STATUS / APPROVE -->
+    <td>
+        @if($s->status == 'pending')
+
+            <form action="{{ route('superadmin.saving.approve', $s->id) }}" method="POST" style="display:inline;">
                 @csrf
-                @method('DELETE')
-                <button class="btn btn-danger btn-sm">Hapus</button>
+                <button class="btn btn-success btn-sm">Approve</button>
             </form>
-        </td>
-    </tr>
-    @endforeach
+
+            <form action="{{ route('superadmin.saving.reject', $s->id) }}" method="POST" style="display:inline;">
+                @csrf
+                <button class="btn btn-secondary btn-sm">Reject</button>
+            </form>
+
+        @else
+            <span class="badge
+                bg-{{ $s->status == 'approved' ? 'success' : ($s->status == 'rejected' ? 'danger' : 'warning') }}">
+                {{ $s->status }}
+            </span>
+        @endif
+    </td>
+</tr>
+@endforeach
 </table>
-{{ $savings->links() }}
 @endsection

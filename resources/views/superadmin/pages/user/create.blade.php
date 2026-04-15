@@ -71,6 +71,15 @@
                 </select>
             </div>
 
+            <div class="mb-3">
+                <label>Role</label>
+                <select name="role" class="form-control">
+                    <option value="calon">Calon</option>
+                    <option value="aktif">Aktif</option>
+                    <option value="nonaktif">Nonaktif</option> <!-- 🔥 tambah ini -->
+                </select>
+            </div>
+
             <button class="btn btn-primary">Simpan</button>
             <a href="{{ route('superadmin.user.index') }}" class="btn btn-secondary">Kembali</a>
 

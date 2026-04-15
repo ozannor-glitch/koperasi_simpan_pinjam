@@ -21,9 +21,11 @@
             <thead class="table-dark">
                 <tr>
                     <th>KTP</th>
+                    <th>KTP Status</th>
                     <th>KK</th>
                     <th>Nama</th>
                     <th>Email</th>
+                    <th>Status</th>
                     <th>Role</th>
                     <th width="150">Aksi</th>
                 </tr>
@@ -44,6 +46,14 @@
                 @endif
             </td>
 
+            {{-- KTP Status --}}
+            <td>
+                <span class="badge
+                    bg-{{ $user->ktp_status == 'verified' ? 'success' : ($user->ktp_status == 'rejected' ? 'danger' : 'warning') }}">
+                    {{ $user->ktp_status }}
+                </span>
+            </td>
+
             {{-- KOLOM NIK --}}
             <td>{{ $user->nik }}</td>
 
@@ -57,6 +67,13 @@
             <td>
                 <span class="badge bg-info">
                     {{ $user->role }}
+                </span>
+            </td>
+
+            {{-- KOLOM Status --}}
+            <td>
+                <span class="badge bg-info">
+                    {{ $user->status }}
                 </span>
             </td>
 
@@ -79,6 +96,16 @@
                                 onclick="return confirm('Yakin hapus?')">
                             Hapus
                         </button>
+                    </form>
+
+                    <form action="{{ route('superadmin.user.verify', $user->id) }}" method="POST" style="display:inline;">
+                        @csrf
+                        <button class="btn btn-success btn-sm">Verifikasi</button>
+                    </form>
+
+                    <form action="{{ route('superadmin.user.reject', $user->id) }}" method="POST" style="display:inline;">
+                        @csrf
+                        <button class="btn btn-danger btn-sm">Tolak</button>
                     </form>
 
                 @endif

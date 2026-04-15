@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -34,7 +35,6 @@ class UserController extends Controller
 
 public function store(Request $request)
 {
-    // validasi umum
     $rules = [
         'name' => 'required',
         'email' => 'required|email|unique:users,email',
@@ -42,7 +42,7 @@ public function store(Request $request)
         'role' => 'required',
     ];
 
-    // 🔥 tambahan kalau anggota
+    // 🔥 kalau anggota wajib KTP & NIK
     if ($request->role == 'anggota') {
         $rules['KTP'] = 'required|image|mimes:jpeg,png,jpg|max:2048';
         $rules['nik'] = 'required|string|max:200';
@@ -56,6 +56,11 @@ public function store(Request $request)
         $ktpPath = $request->file('KTP')->store('ktp', 'public');
     }
 
+    // 🔥 AUTO STATUS
+    $status = ($request->role == 'anggota')
+        ? 'aktif'
+        : ($request->status ?? 'nonaktif');
+
     User::create([
         'KTP' => $ktpPath,
         'nik' => $request->nik,
@@ -63,10 +68,14 @@ public function store(Request $request)
         'email' => $request->email,
         'password' => Hash::make($request->password),
         'role' => $request->role,
-        'status' => 'active'
+        'status' => $status,
+
+        // 🔥 TAMBAHAN BARU
+        'ktp_status' => 'pending',
     ]);
 
-    return redirect()->route('superadmin.user.index')->with('success', 'User berhasil ditambahkan');
+    return redirect()->route('superadmin.user.index')
+        ->with('success', 'User berhasil ditambahkan');
 }
 
 public function update(Request $request, $id)
@@ -74,8 +83,8 @@ public function update(Request $request, $id)
     $user = User::findOrFail($id);
 
     if ($user->role == 'super_admin') {
-    return back()->withErrors('Super Admin tidak bisa diedit');
-}
+        return back()->withErrors('Super Admin tidak bisa diedit');
+    }
 
     $rules = [
         'name' => 'required',
@@ -83,7 +92,6 @@ public function update(Request $request, $id)
         'role' => 'required',
     ];
 
-    // 🔥 kalau anggota
     if ($request->role == 'anggota') {
         $rules['nik'] = 'required|string|max:200';
         $rules['KTP'] = 'nullable|image|mimes:jpeg,png,jpg|max:2048';
@@ -91,11 +99,17 @@ public function update(Request $request, $id)
 
     $request->validate($rules);
 
+    // 🔥 AUTO STATUS
+   $status = ($request->role == 'anggota')
+    ? 'aktif'
+    : ($request->status ?? 'nonaktif');
+
     $data = [
         'nik' => $request->nik,
         'name' => $request->name,
         'email' => $request->email,
         'role' => $request->role,
+        'status' => $status,
     ];
 
     if ($request->hasFile('KTP')) {
@@ -111,20 +125,45 @@ public function update(Request $request, $id)
     return redirect()->route('superadmin.user.index')->with('success', 'User berhasil diupdate');
 }
 
+    public function verify($id)
+    {
+        $user = User::findOrFail($id);
+        $user->ktp_status = 'verified';
+        $user->save();
+
+        return back()->with('success', 'KTP berhasil diverifikasi');
+    }
+
+    public function reject($id)
+    {
+        $user = User::findOrFail($id);
+        $user->ktp_status = 'rejected';
+        $user->save();
+
+        return back()->with('success', 'KTP ditolak');
+    }
+
 public function destroy($id)
 {
-        $user = User::findOrFail($id);
+    $user = User::findOrFail($id);
 
-        if (Auth::id() == $id) {
-            return back()->withErrors('Tidak bisa hapus akun sendiri');
-        }
-
-        if ($user->role == 'super_admin') {
-            return back()->withErrors('Super Admin tidak bisa dihapus');
-        }
-
-        $user->delete();
-
-        return back()->with('success', 'User berhasil dihapus');
+    if (Auth::id() == $id) {
+        return back()->withErrors('Tidak bisa hapus akun sendiri');
     }
+
+    if ($user->role == 'super_admin') {
+        return back()->withErrors('Super Admin tidak bisa dihapus');
+    }
+
+    // 🔥 HAPUS FILE KTP
+    if ($user->ktp && Storage::disk('public')->exists($user->ktp)) {
+        Storage::disk('public')->delete($user->ktp);
+    }
+
+    $user->delete();
+
+    return back()->with('success', 'User berhasil dihapus');
+}
+
+
 }

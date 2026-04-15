@@ -38,7 +38,7 @@ class SavingController extends Controller
         $request->validate([
             'user_id' => 'required',
             'saving_type_id' => 'required',
-            'amount' => 'required|numeric|min:1000',
+            'amount' => 'required|numeric|min:100000',
         ]);
 
         $userId = $request->input('user_id');
@@ -54,43 +54,103 @@ class SavingController extends Controller
         $saving->save();
 
         SavingTransaction::create([
-            'user_id' => $userId,
-            'saving_type_id' => $typeId,
-            'transaction_type' => 'setor',
-            'amount' => $amount,
+                'user_id' => $userId,
+                'saving_type_id' => $typeId,
+                'transaction_type' => 'setor',
+                'amount' => $amount,
+                'status' => 'pending'
         ]);
 
         return back()->with('success', 'Setoran berhasil');
     }
 
     //Tarik Uang
-    public function withdraw(Request $request)
+public function withdraw(Request $request)
 {
-    $userId = $request->input('user_id');
-    $typeId = $request->input('saving_type_id');
-    $amount = $request->input('amount');
+    $request->validate([
+        'user_id' => 'required',
+        'saving_type_id' => 'required',
+        'amount' => 'required|numeric|min:1'
+    ]);
+
+    $userId = $request->user_id;
+    $typeId = $request->saving_type_id;
+    $amount = (int) $request->amount;
 
     $saving = MemberSaving::where([
         'user_id' => $userId,
         'saving_type_id' => $typeId
     ])->first();
 
-    if (!$saving || $saving->balance < $amount) {
+    if (!$saving) {
+        return back()->withErrors('Data tidak ditemukan');
+    }
+
+      $savingType = $saving->savingType;
+
+    // 🔥 SIMPANAN WAJIB TIDAK BOLEH DITARIK
+    if ($savingType->name === 'Wajib') {
+        return back()->withErrors('Simpanan wajib tidak dapat ditarik');
+    }
+
+    // 🔥 MINIMAL PENARIKAN
+    $minimumTarik = $saving->savingType->minimum_withdraw;
+
+    if ($amount < $minimumTarik) {
+        return back()->withErrors('Minimal penarikan Rp ' . number_format($minimumTarik));
+    }
+
+    // 🔥 SALDO TIDAK CUKUP
+    if ($amount > $saving->balance) {
         return back()->withErrors('Saldo tidak cukup');
     }
 
+    // 🔥 KURANGI SALDO
     $saving->balance -= $amount;
     $saving->save();
 
-    SavingTransaction::create([
-        'user_id' => $userId,
-        'saving_type_id' => $typeId,
-        'transaction_type' => 'tarik',
-        'amount' => $amount,
+    return back()->with('success', 'Berhasil tarik saldo');
+}
+    // Persetujuan Penarikan
+    public function approve($id)
+    {
+    $trx = SavingTransaction::findOrFail($id);
+
+    if ($trx->status != 'pending') {
+        return back()->withErrors('Sudah diproses');
+    }
+
+    $saving = MemberSaving::firstOrCreate([
+        'user_id' => $trx->user_id,
+        'saving_type_id' => $trx->saving_type_id
     ]);
 
-    return back()->with('success','Penarikan berhasil');
-}
+    if ($trx->transaction_type == 'setor') {
+        $saving->balance += $trx->amount;
+    } else {
+        if ($saving->balance < $trx->amount) {
+            return back()->withErrors('Saldo tidak cukup');
+        }
+        $saving->balance -= $trx->amount;
+    }
+
+    $saving->save();
+
+    $trx->status = 'approved';
+    $trx->save();
+
+    return back()->with('success','Transaksi disetujui');
+    }
+    //Penolakan Penarikan
+    public function reject($id)
+    {
+        $trx = SavingTransaction::findOrFail($id);
+        $trx->status = 'rejected';
+        $trx->save();
+
+        return back()->with('success','Transaksi ditolak');
+    }
+
     //Histori Transaksi
     public function transactions()
     {

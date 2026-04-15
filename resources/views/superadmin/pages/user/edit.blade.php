@@ -86,6 +86,12 @@
         <option value="anggota" {{ $user->role == 'anggota' ? 'selected' : '' }}>anggota</option>
         </select>
 
+        <select name="status">
+        <option value="calon" {{ $user->status == 'calon' ? 'selected' : '' }}>Calon</option>
+        <option value="aktif" {{ $user->role == 'aktif' ? 'selected' : '' }}>Aktif</option>
+        <option value="nonaktif" {{ $user->role == 'nonaktif' ? 'selected' : '' }}>Non-Aktif</option>
+        </select>
+
         <div class="form-group">
             <button type="submit" class="btn btn-primary">Save</button>
             <a href="/superadmin/user/" class="btn btn-secondary">Cancel</a>

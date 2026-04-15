@@ -75,6 +75,8 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
     Route::get('/user/create', [UserController::class, 'create'])->name('user.create');
     Route::post('user', [UserController::class, 'store'])->name('user.store');
+    Route::post('/user/{id}/verify', [UserController::class, 'verify'])->name('user.verify');
+    Route::post('/user/{id}/reject', [UserController::class, 'reject'])->name('user.reject');
     Route::get('user/{id}/edit', [UserController::class, 'edit'])->name('user.edit');
     Route::put('update/{id}', [UserController::class, 'update'])->name('user.update');
     Route::delete('destroy/{id}', [UserController::class, 'destroy'])->name('user.destroy');
@@ -89,6 +91,8 @@ Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
     Route::post('/saving/store', [AdminSavingController::class, 'store'])->name('saving.store');
     Route::post('/saving/withdraw', [AdminSavingController::class, 'withdraw'])->name('saving.withdraw');
     Route::get('/saving/transactions', [AdminSavingController::class, 'transactions'])->name('saving.transactions');
+    Route::post('/saving/{id}/approve', [AdminSavingController::class, 'approve'])->name('superadmin.saving.approve');
+    Route::post('/saving/{id}/reject', [AdminSavingController::class, 'reject'])->name('superadmin.saving.reject');
     Route::delete('/saving/{id}', [AdminSavingController::class, 'destroy'])->name('saving.destroy');
 });
 

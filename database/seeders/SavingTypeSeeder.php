@@ -22,5 +22,10 @@ class SavingTypeSeeder extends Seeder
         'name' => 'Sukarela',
         'minimum_amount' => 0
     ]);
+
+     SavingType::create([
+        'name' => 'Deposito',
+        'minimum_amount' => 1000000
+    ]);
     }
 }
