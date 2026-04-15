@@ -79,7 +79,7 @@ class AuthController extends Controller
             'nik' => $request->nik,
             'KTP' => $ktpPath, // Simpan path/nama filenya saja di database
             'role' => 'user',
-            'status' => 'active',
+            'status' => 'Menunggu Verifikasi',
         ]);
 
         $token = $user->createToken('user-token')->plainTextToken;
