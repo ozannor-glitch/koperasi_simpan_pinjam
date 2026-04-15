@@ -66,7 +66,7 @@ public function store(Request $request)
         'status' => 'active'
     ]);
 
-    return redirect()->route('user.index')->with('success', 'User berhasil ditambahkan');
+    return redirect()->route('superadmin.user.index')->with('success', 'User berhasil ditambahkan');
 }
 
 public function update(Request $request, $id)
@@ -108,7 +108,7 @@ public function update(Request $request, $id)
 
     $user->update($data);
 
-    return redirect()->route('user.index')->with('success', 'User berhasil diupdate');
+    return redirect()->route('superadmin.user.index')->with('success', 'User berhasil diupdate');
 }
 
 public function destroy($id)

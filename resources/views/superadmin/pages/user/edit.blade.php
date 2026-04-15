@@ -24,7 +24,7 @@
     </div>
 @endif
 
-   <form action="{{ route('user.update', $user->id) }}" method="POST">
+   <form action="{{ route('superadmin.user.update', $user->id) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 

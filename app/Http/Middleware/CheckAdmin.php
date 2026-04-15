@@ -20,9 +20,10 @@ class CheckAdmin
         //jika sudah maka akun akan lanjut ke halaman yang dituju,
         //jika belum maka user akan diarahkan ke halaman login dengan pesan error
         if (Auth::check()) {
-        return $next($request);
-        }else{
-            return redirect()->to('auth/login')->with('error', 'Anda harus login terlebih dahulu.');
+            return $next($request);
+        } else {
+            // Arahkan ke nama route yang baru kita buat
+            return redirect()->guest(route('admin.login'))->with('error', 'Anda harus login terlebih dahulu.');
         }
     }
 }

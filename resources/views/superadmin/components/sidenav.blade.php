@@ -3,25 +3,27 @@
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
                     <div class="sb-sidenav-menu">
                         <div class="nav">
-                            <div class="sb-sidenav-menu-heading">Core</div>
-                            @if(Auth::user()->role == 'super_admin')
-                                <li>Kelola User</li>
+                            <div class="sb-sidenav-menu-heading">Super Admin</div>
+                             @if(Auth::user()->role === 'super_admin')
+                                <li class="nav-item {{ request()->routeIs('superadmin.user.*') ? 'active' : '' }}">
+                                    <a class="nav-link" href="{{ route('superadmin.user.index') }}">
+                                        <i class="fas fa-user"></i>
+                                        <span>Kelola user</span>
+                                    </a>
+                                </li>
                             @endif
-
                             @if(in_array(Auth::user()->role, ['super_admin','admin']))
-                                <li>Simpanan</li>
+                                <li class="nav-item {{ request()->routeIs('superadmin.saving.*') ? 'active' : '' }}">
+                                    <a class="nav-link" href="{{ route('superadmin.saving.index') }}">
+                                        <i class="fas fa-user"></i>
+                                        <span>Simpanan</span>
+                                    </a>
+                                </li>
                             @endif
 
                             @if(in_array(Auth::user()->role, ['super_admin','teller']))
                                 <li>Transaksi</li>
                             @endif
-
-                              <li class="nav-item {{ request()->routeIs('user.*') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ route('user.index') }}">
-                                    <i class="fas fa-user"></i>
-                                    <span>User</span>
-                                </a>
-                              </li>
 
                             <li class="nav-item {{request()->routeIs('admin/statistic/*') ? 'active' : ''}}">
                                 <a class="nav-link" href="/superadmin/statistic">

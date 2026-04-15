@@ -15,7 +15,7 @@
 
     <div class="card-body">
 
-        <form action="{{ route('user.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('superadmin.user.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="form-group mb-3">
             <label for="KTP">Foto KTP <span class="text-danger">*</span></label>
@@ -72,7 +72,7 @@
             </div>
 
             <button class="btn btn-primary">Simpan</button>
-            <a href="{{ route('user.index') }}" class="btn btn-secondary">Kembali</a>
+            <a href="{{ route('superadmin.user.index') }}" class="btn btn-secondary">Kembali</a>
 
         </form>
 

@@ -10,7 +10,7 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Data User</span>
 
-        <a href="{{ route('user.create') }}" class="btn btn-primary btn-sm">
+        <a href="{{ route('superadmin.user.create') }}" class="btn btn-primary btn-sm">
             + Tambah User
         </a>
     </div>
@@ -64,12 +64,12 @@
             <td>
                 @if($user->role != 'super_admin')
 
-                    <a href="{{ route('user.edit', $user->id) }}"
+                    <a href="{{ route('superadmin.user.edit', $user->id) }}"
                     class="btn btn-warning btn-sm">
                         Edit
                     </a>
 
-                    <form action="{{ route('user.destroy', $user->id) }}"
+                    <form action="{{ route('superadmin.user.destroy', $user->id) }}"
                         method="POST"
                         style="display:inline;">
                         @csrf

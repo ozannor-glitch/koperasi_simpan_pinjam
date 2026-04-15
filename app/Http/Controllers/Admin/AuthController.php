@@ -19,30 +19,37 @@ class AuthController extends Controller
     public function authenticate(Request $request)
     {
         $credentials = $request->only("email", "password");
+
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             $user = Auth::user();
+
+            // Menggunakan redirect()->intended() sangat disarankan agar user kembali
+            // ke halaman yang mereka tuju sebelum dipaksa login
             switch ($user->role) {
                 case 'super_admin':
-                    return redirect('/superadmin/dashboard');
+                    return redirect()->intended('/superadmin/dashboard');
                 case 'admin':
-                    return redirect('/adminkeuangan/dashboard');
+                    return redirect()->intended('/adminkeuangan/dashboard');
                 case 'teller':
-                    return redirect('/teller/dashboard');
+                    return redirect()->intended('/teller/dashboard');
                 default:
                     Auth::logout();
-                    return redirect('/auth/login')->withErrors('Role tidak Valid');
+                    return redirect()->route('admin.login')->withErrors('Role tidak Valid');
             }
-            return back()->withErrors('Email atau Password salah');
         }
+
+        // Pindahkan ini ke luar blok IF agar jika login gagal, user mendapat feedback
+        return back()->withErrors(['email' => 'Email atau Password salah'])->withInput();
     }
+
     public function logout(Request $request)
     {
         Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        $request->session()->invalidate(); // 🔥 hapus session
-        $request->session()->regenerateToken(); // 🔥 keamanan CSRF
-
-        return redirect('/auth/login')->with('success', 'Logout berhasil!');
+        // Sesuaikan redirect logout ke rute login admin
+        return redirect()->route('admin.login')->with('success', 'Logout berhasil!');
     }
 }

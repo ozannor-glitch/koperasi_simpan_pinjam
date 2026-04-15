@@ -50,4 +50,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+   public function savings()
+     {
+            return $this->hasMany(MemberSaving::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(MemberSaving::class);
+    }
 }
