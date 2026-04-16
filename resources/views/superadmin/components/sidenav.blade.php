@@ -42,12 +42,12 @@
                     @endif
 
                     {{-- STATISTIK --}}
-                    <a class="nav-link {{ request()->is('superadmin/statistic') ? 'active' : '' }}"
-                       href="{{ url('/superadmin/statistic') }}">
+                    <a class="nav-link {{ request()->is('superadmin/penarikan') ? 'active' : '' }}"
+                       href="{{ url('/superadmin/penarikan') }}">
                         <div class="sb-nav-link-icon">
                             <i class="fas fa-chart-line"></i>
                         </div>
-                        Statistik
+                        Penarikan
                     </a>
 
                 </div>

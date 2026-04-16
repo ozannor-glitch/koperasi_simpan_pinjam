@@ -25,4 +25,9 @@ class MemberSaving extends Model
     {
         return $this->belongsTo(SavingType::class);
     }
+
+    public function penarikans()
+    {
+        return $this->hasMany(Penarikan::class);
+    }
 }

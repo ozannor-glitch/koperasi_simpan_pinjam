@@ -2,6 +2,7 @@
 //Admin Controller
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\PenarikanController;
 use App\Http\Controllers\Admin\SavingController as AdminSavingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Middleware\CheckAdmin;
@@ -96,5 +97,17 @@ Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
     Route::post('/saving/{id}/approve', [AdminSavingController::class, 'approve'])->name('saving.approve');
     Route::post('/saving/{id}/reject', [AdminSavingController::class, 'reject'])->name('saving.reject');
     Route::delete('/saving/{id}', [AdminSavingController::class, 'destroy'])->name('saving.destroy');
+});
+
+//CRUD Tabel Penarikan
+Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
+    ->name('superadmin.')->group(function () {
+
+    Route::get('/penarikan', [PenarikanController::class, 'index'])->name('penarikan.index');
+    Route::get('/penarikan/{id}', [PenarikanController::class, 'show'])->name('penarikan.show');
+
+    Route::post('/penarikan/{id}/approve', [PenarikanController::class, 'approve'])->name('penarikan.approve');
+    Route::post('/penarikan/{id}/reject/', [PenarikanController::class, 'reject'])->name('penarikan.reject');
+    Route::post('/penarikan/{id}/complete', [PenarikanController::class, 'complete'])->name('penarikan.complete');
 });
 

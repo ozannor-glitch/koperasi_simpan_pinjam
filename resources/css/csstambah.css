@@ -107,62 +107,11 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/*tabel penarikan*/
+th form {
+    display: flex;
+    flex-direction: column;
+}
+
 /* CSS TAMPILAN SIDEBAR*/
-/* SIDEBAR HIJAU */
-.sb-sidenav-dark {
-    background: linear-gradient(180deg, #16a34a, #166534) !important;
-}
 
-/* TEXT */
-.sb-sidenav-dark .nav-link {
-    color: #d1fae5 !important;
-    font-weight: 500;
-}
-
-/* ICON */
-.sb-sidenav-dark .sb-nav-link-icon {
-    color: #bbf7d0 !important;
-}
-
-/* HOVER */
-.sb-sidenav-dark .nav-link:hover {
-    background: rgba(255,255,255,0.15);
-    color: white !important;
-}
-
-/* ACTIVE */
-.sb-sidenav-dark .nav-link.active {
-    background: rgba(255,255,255,0.25);
-    color: white !important;
-}
-
-/* HEADING */
-.sb-sidenav-dark .sb-sidenav-menu-heading {
-    color: #bbf7d0 !important;
-}
-
-/* FOOTER SIDEBAR */
-.sb-sidenav-footer {
-    background: rgba(0,0,0,0.1) !important;
-    color: #d1fae5 !important;
-}
-
-/* NAVBAR */
-.sb-topnav {
-    background: linear-gradient(90deg, #16a34a, #22c55e) !important;
-}
-
-/* BODY */
-body {
-    background: #f0fdf4;
-}
-
-/* BUTTON */
-.btn-primary {
-    background-color: #16a34a !important;
-    border: none;
-}
-
-.btn-primary:hover {
-    background-color: #166534 !important;
-}
