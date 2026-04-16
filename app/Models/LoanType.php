@@ -4,7 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class loan_types extends Model
+class LoanType extends Model
 {
-    //
+    protected $fillable = [
+    'name',
+    'max_plafon',
+    'interest_rate_percent',
+    'max_tenor_months'
+];
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
+    }
 }

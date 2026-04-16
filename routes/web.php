@@ -2,6 +2,11 @@
 //Admin Controller
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\LoanApprovalController;
+use App\Http\Controllers\Admin\LoanController;
+use App\Http\Controllers\Admin\LoanInstallmentController;
+use App\Http\Controllers\Admin\LoanPaymentController;
+use App\Http\Controllers\Admin\LoanTypeController;
 use App\Http\Controllers\Admin\PenarikanController;
 use App\Http\Controllers\Admin\SavingController as AdminSavingController;
 use App\Http\Controllers\Admin\UserController;
@@ -111,3 +116,20 @@ Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
     Route::post('/penarikan/{id}/complete', [PenarikanController::class, 'complete'])->name('penarikan.complete');
 });
 
+//CRUD Tabel Pinjaman
+Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
+    ->name('superadmin.')->group(function () {
+
+Route::resource('pinjaman', LoanController::class);
+Route::get('approvals', [LoanApprovalController::class,'index']);
+Route::post('approve/{id}', [LoanApprovalController::class,'approve']);
+Route::post('reject/{id}', [LoanApprovalController::class,'reject']);
+
+Route::get('installments/{loan}', [LoanInstallmentController::class,'index']);
+Route::get('installment/{id}', [LoanInstallmentController::class,'show']);
+
+Route::post('pay/{id}', [LoanPaymentController::class,'pay']);
+
+Route::resource('loan-types', LoanTypeController::class);
+
+});

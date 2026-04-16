@@ -64,4 +64,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(Penarikan::class);
     }
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
+    }
 }

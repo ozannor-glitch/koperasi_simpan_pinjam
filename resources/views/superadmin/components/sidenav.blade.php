@@ -31,17 +31,18 @@
                     </a>
                     @endif
 
-                    {{-- TRANSAKSI --}}
+                    {{-- Pinjaman --}}
                     @if(in_array(Auth::user()->role, ['super_admin','teller']))
-                    <a class="nav-link" href="#">
-                        <div class="sb-nav-link-icon">
+                     <a class="nav-link {{ request()->is('superadmin/pinjaman') ? 'active' : '' }}"
+                       href="{{ url('/superadmin/pinjaman') }}">
+                       <div class="sb-nav-link-icon">
                             <i class="fas fa-exchange-alt"></i>
                         </div>
-                        Transaksi
+                        Pinjaman
                     </a>
                     @endif
 
-                    {{-- STATISTIK --}}
+                    {{-- Penarikan --}}
                     <a class="nav-link {{ request()->is('superadmin/penarikan') ? 'active' : '' }}"
                        href="{{ url('/superadmin/penarikan') }}">
                         <div class="sb-nav-link-icon">
