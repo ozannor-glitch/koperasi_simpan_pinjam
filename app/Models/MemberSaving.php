@@ -2,19 +2,12 @@
 
 namespace App\Models;
 
-<<<<<<< HEAD
-=======
 use Illuminate\Database\Eloquent\Factories\HasFactory;
->>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
 use Illuminate\Database\Eloquent\Model;
 
 class MemberSaving extends Model
 {
-<<<<<<< HEAD
-    protected $table = 'member_savings';
-=======
     use HasFactory;
->>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
 
     protected $fillable = [
         'user_id',
@@ -22,31 +15,21 @@ class MemberSaving extends Model
         'balance',
     ];
 
-<<<<<<< HEAD
-    // 🔗 relasi ke user (anggota)
-=======
     protected $casts = [
-        'balance' => 'decimal:2',
+        'balance' => 'string', // 🔥 bukan decimal
     ];
 
     // Relasi ke user
->>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-<<<<<<< HEAD
-    // 🔗 relasi ke jenis simpanan
-=======
     // Relasi ke saving type
->>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
     public function savingType()
     {
         return $this->belongsTo(SavingType::class);
     }
-<<<<<<< HEAD
-=======
 
     // Relasi ke saving transactions
     public function savingTransactions()
@@ -67,8 +50,11 @@ class MemberSaving extends Model
         if ($this->balance < $amount) {
             throw new \Exception('Saldo tidak mencukupi');
         }
-        $this->balance -= $amount;
+       $this->balance = bcsub(
+            (string) ($this->balance ?? 0),
+            (string) $amount,
+            2
+        );
         return $this->save();
     }
->>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
 }
