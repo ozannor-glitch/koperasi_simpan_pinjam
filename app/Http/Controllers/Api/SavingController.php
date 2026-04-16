@@ -49,7 +49,7 @@ class SavingController extends Controller
                 ->where('user_id', $user->id)
                 ->get();
 
-            // Jika user belum memiliki tabungan, buatkan default
+            // Jika user belum memiliki tabungan, buatkan default untuk semua jenis
             if ($memberSavings->isEmpty()) {
                 $savingTypes = SavingType::all();
                 foreach ($savingTypes as $type) {
@@ -82,6 +82,10 @@ class SavingController extends Controller
      * Get user's saving transaction history
      * Endpoint: GET /api/saving-history
      */
+    /**
+     * Get user's saving transaction history
+     * Endpoint: GET /api/saving-history
+     */
     public function getSavingHistory(Request $request)
     {
         try {
@@ -96,7 +100,7 @@ class SavingController extends Controller
                 $query->where('saving_type_id', $request->saving_type_id);
             }
 
-            // Filter by transaction type
+            // Filter by transaction type ('setor' atau 'tarik')
             if ($request->has('transaction_type')) {
                 $query->where('transaction_type', $request->transaction_type);
             }
@@ -128,7 +132,7 @@ class SavingController extends Controller
     }
 
     /**
-     * Deposit money (menabung)
+     * Deposit money (menabung/setor)
      * Endpoint: POST /api/deposit
      */
     public function deposit(Request $request)
@@ -150,9 +154,20 @@ class SavingController extends Controller
             $user = Auth::user();
             $amount = $request->amount;
 
+            // Get saving type
+            $savingType = SavingType::find($request->saving_type_id);
+
+            // Validasi minimal amount berdasarkan jenis tabungan
+            if ($amount < $savingType->minimum_amount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Minimal setor untuk {$savingType->name} adalah Rp " . number_format($savingType->minimum_amount, 0, ',', '.'),
+                ], 422);
+            }
+
             DB::beginTransaction();
 
-            // Get or create member saving
+            // Get or create member saving berdasarkan user_id dan saving_type_id
             $memberSaving = MemberSaving::firstOrCreate(
                 [
                     'user_id' => $user->id,
@@ -163,29 +178,30 @@ class SavingController extends Controller
                 ]
             );
 
-            // Create transaction record
+            // Create transaction record dengan transaction_type = 'setor'
             $transaction = SavingTransaction::create([
                 'user_id' => $user->id,
                 'saving_type_id' => $request->saving_type_id,
-                'transaction_type' => SavingTransaction::TYPE_DEPOSIT,
+                'transaction_type' => SavingTransaction::TYPE_SETOR, // 'setor'
                 'amount' => $amount,
                 'status' => SavingTransaction::STATUS_SUCCESS,
             ]);
 
-            // Update balance
+            // Update balance di member_savings
             $memberSaving->addBalance($amount);
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil menabung',
+                'message' => "Berhasil setor {$savingType->name} sebesar Rp " . number_format($amount, 0, ',', '.'),
                 'data' => [
                     'transaction' => $transaction,
                     'new_balance' => $memberSaving->balance,
+                    'saving_type' => $savingType->name,
+                    'user_id' => $user->id,
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -219,9 +235,20 @@ class SavingController extends Controller
             $user = Auth::user();
             $amount = $request->amount;
 
+            // Get saving type
+            $savingType = SavingType::find($request->saving_type_id);
+
+            // Tabungan Deposito tidak bisa ditarik
+            if ($savingType->isDeposito()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tabungan Deposito tidak dapat ditarik. Hanya bisa diambil saat jatuh tempo.',
+                ], 422);
+            }
+
             DB::beginTransaction();
 
-            // Get member saving
+            // Get member saving berdasarkan user_id dan saving_type_id
             $memberSaving = MemberSaving::where('user_id', $user->id)
                 ->where('saving_type_id', $request->saving_type_id)
                 ->first();
@@ -229,41 +256,62 @@ class SavingController extends Controller
             if (!$memberSaving) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda belum memiliki tabungan jenis ini'
+                    'message' => "Anda belum memiliki tabungan {$savingType->name}"
                 ], 400);
+            }
+
+            // Validasi minimal penarikan untuk tabungan wajib
+            if ($savingType->isWajib() && $amount < $savingType->minimum_amount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Minimal penarikan untuk tabungan Wajib adalah Rp " . number_format($savingType->minimum_amount, 0, ',', '.'),
+                ], 422);
             }
 
             // Check balance
             if ($memberSaving->balance < $amount) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Saldo tidak mencukupi'
+                    'message' => "Saldo tabungan {$savingType->name} tidak mencukupi",
+                    'current_balance' => $memberSaving->balance,
                 ], 400);
             }
 
-            // Create transaction record
+            // Untuk tabungan wajib, saldo minimal harus Rp 50.000
+            if ($savingType->isWajib()) {
+                $minBalance = $savingType->minimum_amount;
+                if (($memberSaving->balance - $amount) < $minBalance) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Saldo tabungan Wajib minimal harus Rp " . number_format($minBalance, 0, ',', '.'),
+                    ], 422);
+                }
+            }
+
+            // Create transaction record dengan transaction_type = 'tarik'
             $transaction = SavingTransaction::create([
                 'user_id' => $user->id,
                 'saving_type_id' => $request->saving_type_id,
-                'transaction_type' => SavingTransaction::TYPE_WITHDRAWAL,
+                'transaction_type' => SavingTransaction::TYPE_TARIK, // 'tarik'
                 'amount' => $amount,
                 'status' => SavingTransaction::STATUS_SUCCESS,
             ]);
 
-            // Update balance
+            // Update balance di member_savings (kurangi saldo)
             $memberSaving->subtractBalance($amount);
 
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Berhasil menarik tunai',
+                'message' => "Berhasil tarik tunai dari {$savingType->name} sebesar Rp " . number_format($amount, 0, ',', '.'),
                 'data' => [
                     'transaction' => $transaction,
                     'new_balance' => $memberSaving->balance,
+                    'saving_type' => $savingType->name,
+                    'user_id' => $user->id,
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -273,7 +321,10 @@ class SavingController extends Controller
             ], 500);
         }
     }
-
+    /**
+     * Get summary of user's savings
+     * Endpoint: GET /api/saving-summary
+     */
     /**
      * Get summary of user's savings
      * Endpoint: GET /api/saving-summary
@@ -283,19 +334,32 @@ class SavingController extends Controller
         try {
             $user = Auth::user();
 
-            $totalBalance = MemberSaving::where('user_id', $user->id)->sum('balance');
+            // Summary per saving type
+            $savingsSummary = MemberSaving::with('savingType')
+                ->where('user_id', $user->id)
+                ->get()
+                ->map(function ($saving) {
+                    return [
+                        'type' => $saving->savingType->name,
+                        'balance' => $saving->balance,
+                        'minimum_amount' => $saving->savingType->minimum_amount,
+                    ];
+                });
 
-            $totalDeposit = SavingTransaction::where('user_id', $user->id)
-                ->where('transaction_type', SavingTransaction::TYPE_DEPOSIT)
+            $totalBalance = $savingsSummary->sum('balance');
+
+            $totalSetor = SavingTransaction::where('user_id', $user->id)
+                ->where('transaction_type', SavingTransaction::TYPE_SETOR)
                 ->where('status', SavingTransaction::STATUS_SUCCESS)
                 ->sum('amount');
 
-            $totalWithdrawal = SavingTransaction::where('user_id', $user->id)
-                ->where('transaction_type', SavingTransaction::TYPE_WITHDRAWAL)
+            $totalTarik = SavingTransaction::where('user_id', $user->id)
+                ->where('transaction_type', SavingTransaction::TYPE_TARIK)
                 ->where('status', SavingTransaction::STATUS_SUCCESS)
                 ->sum('amount');
 
-            $lastTransaction = SavingTransaction::where('user_id', $user->id)
+            $lastTransaction = SavingTransaction::with('savingType')
+                ->where('user_id', $user->id)
                 ->where('status', SavingTransaction::STATUS_SUCCESS)
                 ->latest()
                 ->first();
@@ -304,9 +368,10 @@ class SavingController extends Controller
                 'success' => true,
                 'message' => 'Ringkasan tabungan berhasil diambil',
                 'data' => [
+                    'savings_summary' => $savingsSummary,
                     'total_balance' => $totalBalance,
-                    'total_deposit' => $totalDeposit,
-                    'total_withdrawal' => $totalWithdrawal,
+                    'total_setor' => $totalSetor,
+                    'total_tarik' => $totalTarik,
                     'last_transaction' => $lastTransaction,
                 ]
             ], 200);
@@ -352,6 +417,7 @@ class SavingController extends Controller
                 'message' => 'Detail tabungan berhasil diambil',
                 'data' => [
                     'saving' => $memberSaving,
+                    'saving_type' => $memberSaving->savingType,
                     'recent_transactions' => $recentTransactions,
                 ]
             ], 200);

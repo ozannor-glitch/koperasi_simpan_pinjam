@@ -32,8 +32,8 @@ class SavingTransaction extends Model
     ];
 
     // Constanta untuk tipe transaksi
-    const TYPE_DEPOSIT = 'deposit';      // Menabung
-    const TYPE_WITHDRAWAL = 'withdrawal'; // Tarik tunai
+    const TYPE_SETOR = 'setor';      // Setor/Deposit
+    const TYPE_TARIK = 'tarik';      // Tarik tunai/Withdrawal
 
     // Constanta untuk status
     const STATUS_PENDING = 'pending';
@@ -65,16 +65,16 @@ class SavingTransaction extends Model
         return $query->where('status', self::STATUS_SUCCESS);
     }
 
-    // Scope untuk deposit
-    public function scopeDeposit($query)
+    // Scope untuk setor
+    public function scopeSetor($query)
     {
-        return $query->where('transaction_type', self::TYPE_DEPOSIT);
+        return $query->where('transaction_type', self::TYPE_SETOR);
     }
 
-    // Scope untuk withdrawal
-    public function scopeWithdrawal($query)
+    // Scope untuk tarik
+    public function scopeTarik($query)
     {
-        return $query->where('transaction_type', self::TYPE_WITHDRAWAL);
+        return $query->where('transaction_type', self::TYPE_TARIK);
     }
 >>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
 }

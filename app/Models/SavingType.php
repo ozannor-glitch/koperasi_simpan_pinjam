@@ -29,6 +29,11 @@ class SavingType extends Model
         'minimum_amount' => 'decimal:2',
     ];
 
+    // Constanta untuk jenis tabungan
+    const TYPE_DEPOSITO = 'Deposito';
+    const TYPE_WAJIB = 'Wajib';
+    const TYPE_SUKARELA = 'Sukarela';
+
     // Relasi ke member savings
     public function memberSavings()
 >>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
@@ -45,5 +50,23 @@ class SavingType extends Model
 >>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
     {
         return $this->hasMany(SavingTransaction::class);
+    }
+
+    // Cek apakah jenis tabungan adalah Deposito
+    public function isDeposito()
+    {
+        return $this->name === self::TYPE_DEPOSITO;
+    }
+
+    // Cek apakah jenis tabungan adalah Wajib
+    public function isWajib()
+    {
+        return $this->name === self::TYPE_WAJIB;
+    }
+
+    // Cek apakah jenis tabungan adalah Sukarela
+    public function isSukarela()
+    {
+        return $this->name === self::TYPE_SUKARELA;
     }
 }
