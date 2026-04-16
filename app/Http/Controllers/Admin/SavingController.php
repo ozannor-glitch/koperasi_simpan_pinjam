@@ -50,9 +50,6 @@ class SavingController extends Controller
             'saving_type_id' => $typeId
         ]);
 
-        $saving->balance += $amount;
-        $saving->save();
-
         SavingTransaction::create([
                 'user_id' => $userId,
                 'saving_type_id' => $typeId,
@@ -116,8 +113,9 @@ public function withdraw(Request $request)
     {
     $trx = SavingTransaction::findOrFail($id);
 
-    if ($trx->status != 'pending') {
-        return back()->withErrors('Sudah diproses');
+    if ($trx->status !== 'pending') {
+    return back()->withErrors('Transaksi sudah diproses');
+
     }
 
     $saving = MemberSaving::firstOrCreate([
@@ -127,10 +125,13 @@ public function withdraw(Request $request)
 
     if ($trx->transaction_type == 'setor') {
         $saving->balance += $trx->amount;
-    } else {
+
+    } elseif ($trx->transaction_type == 'tarik') {
+
         if ($saving->balance < $trx->amount) {
             return back()->withErrors('Saldo tidak cukup');
         }
+
         $saving->balance -= $trx->amount;
     }
 
@@ -140,7 +141,7 @@ public function withdraw(Request $request)
     $trx->save();
 
     return back()->with('success','Transaksi disetujui');
-    }
+}
     //Penolakan Penarikan
     public function reject($id)
     {
@@ -166,5 +167,31 @@ public function withdraw(Request $request)
     $trx->delete();
 
     return back()->with('success','Transaksi dihapus');
+    }
+
+    //Fungsi Bunga
+    public function generateBunga()
+    {
+    $persen = 2; // 2%
+
+    $savings = MemberSaving::all();
+
+    foreach ($savings as $saving) {
+
+        $bunga = ($saving->balance * $persen) / 100;
+
+        SavingTransaction::create([
+            'user_id' => $saving->user_id,
+            'saving_type_id' => $saving->saving_type_id,
+            'transaction_type' => 'bunga',
+            'amount' => $bunga,
+            'status' => 'approved'
+        ]);
+
+        $saving->balance += $bunga;
+        $saving->save();
+    }
+
+    return back()->with('success','Bunga berhasil dibagikan');
     }
 }

@@ -6,28 +6,28 @@
 
 @section('content')
 
-<div class="card mt-4 shadow">
+<div class="card card-modern mt-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <span>Data User</span>
+        <h5 class="mb-0">👤 Data User</h5>
 
-        <a href="{{ route('superadmin.user.create') }}" class="btn btn-primary btn-sm">
+        <a href="{{ route('superadmin.user.create') }}" class="btn btn-green btn-sm">
             + Tambah User
         </a>
     </div>
 
     <div class="card-body">
 
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
+        <table class="table table-hover align-middle">
+            <thead>
                 <tr>
                     <th>KTP</th>
-                    <th>KTP Status</th>
-                    <th>KK</th>
+                    <th>Status</th>
+                    <th>NIK</th>
                     <th>Nama</th>
                     <th>Email</th>
-                    <th>Status</th>
                     <th>Role</th>
-                    <th width="150">Aksi</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
 
@@ -48,10 +48,10 @@
 
             {{-- KTP Status --}}
             <td>
-                <span class="badge
-                    bg-{{ $user->ktp_status == 'verified' ? 'success' : ($user->ktp_status == 'rejected' ? 'danger' : 'warning') }}">
-                    {{ $user->ktp_status }}
-                </span>
+            <span class="badge
+            bg-{{ $user->ktp_status == 'verified' ? 'success' : ($user->ktp_status == 'rejected' ? 'danger' : 'warning') }}">
+                {{ $user->ktp_status }}
+            </span>
             </td>
 
             {{-- KOLOM NIK --}}
@@ -79,43 +79,101 @@
 
             {{-- KOLOM AKSI --}}
             <td>
-                @if($user->role != 'super_admin')
+                <div class="d-flex flex-wrap gap-1">
 
-                    <a href="{{ route('superadmin.user.edit', $user->id) }}"
-                    class="btn btn-warning btn-sm">
-                        Edit
-                    </a>
+                <a href="{{ route('superadmin.user.edit', $user->id) }}"
+                class="btn btn-warning btn-sm">Edit</a>
 
-                    <form action="{{ route('superadmin.user.destroy', $user->id) }}"
-                        method="POST"
-                        style="display:inline;">
-                        @csrf
-                        @method('DELETE')
+                <form action="{{ route('superadmin.user.destroy', $user->id) }}" method="POST">
+                    @csrf @method('DELETE')
+                    <button class="btn btn-danger btn-sm">Hapus</button>
+                </form>
 
-                        <button class="btn btn-danger btn-sm"
-                                onclick="return confirm('Yakin hapus?')">
-                            Hapus
-                        </button>
-                    </form>
+                <form action="{{ route('superadmin.user.verify', $user->id) }}" method="POST">
+                    @csrf
+                    <button class="btn btn-success btn-sm">✔</button>
+                </form>
 
-                    <form action="{{ route('superadmin.user.verify', $user->id) }}" method="POST" style="display:inline;">
-                        @csrf
-                        <button class="btn btn-success btn-sm">Verifikasi</button>
-                    </form>
+                <form action="{{ route('superadmin.user.reject', $user->id) }}" method="POST">
+                    @csrf
+                    <button class="btn btn-secondary btn-sm">✖</button>
+                </form>
 
-                    <form action="{{ route('superadmin.user.reject', $user->id) }}" method="POST" style="display:inline;">
-                        @csrf
-                        <button class="btn btn-danger btn-sm">Tolak</button>
-                    </form>
+                <button class="btn btn-info btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalUser{{ $user->id }}">
+                    Riwayat
+                </button>
 
-                @endif
-            </td>
-
+                </div>
+                </td>
         </tr>
+
         @endforeach
         </tbody>
         </table>
+        @foreach($users as $user)
 
+        {{-- Modal Popup Riwayat --}}
+        <div class="modal fade" id="modalUser{{ $user->id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content card-modern">
+
+                    <div class="modal-header" style="background:#dcfce7;">
+                        <h5 class="modal-title">
+                            📜 Riwayat {{ $user->name }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tipe</th>
+                                    <th>Jumlah</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @forelse($user->transactions as $trx)
+                                <tr>
+                                    <td>
+                                        <span class="badge
+                                            bg-{{ $trx->transaction_type == 'setor' ? 'success' :
+                                                ($trx->transaction_type == 'tarik' ? 'danger' : 'warning') }}">
+                                            {{ $trx->transaction_type }}
+                                        </span>
+                                    </td>
+
+                                    <td>Rp {{ number_format($trx->amount) }}</td>
+
+                                    <td>
+                                        <span class="badge
+                                            bg-{{ $trx->status == 'pending' ? 'warning' : 'success' }}">
+                                            {{ $trx->status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">
+                                        Tidak ada transaksi
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+@endforeach
     </div>
 </div>
 

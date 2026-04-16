@@ -1,41 +1,65 @@
 <div id="layoutSidenav">
-            <div id="layoutSidenav_nav">
-                <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
-                    <div class="sb-sidenav-menu">
-                        <div class="nav">
-                            <div class="sb-sidenav-menu-heading">Super Admin</div>
-                             @if(Auth::user()->role === 'super_admin')
-                                <li class="nav-item {{ request()->routeIs('superadmin.user.*') ? 'active' : '' }}">
-                                    <a class="nav-link" href="{{ route('superadmin.user.index') }}">
-                                        <i class="fas fa-user"></i>
-                                        <span>Kelola user</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if(in_array(Auth::user()->role, ['super_admin','admin']))
-                                <li class="nav-item {{ request()->routeIs('superadmin.saving.*') ? 'active' : '' }}">
-                                    <a class="nav-link" href="{{ route('superadmin.saving.index') }}">
-                                        <i class="fas fa-user"></i>
-                                        <span>Simpanan</span>
-                                    </a>
-                                </li>
-                            @endif
+    <div id="layoutSidenav_nav">
 
-                            @if(in_array(Auth::user()->role, ['super_admin','teller']))
-                                <li>Transaksi</li>
-                            @endif
+        <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
 
-                            <li class="nav-item {{request()->routeIs('admin/statistic/*') ? 'active' : ''}}">
-                                <a class="nav-link" href="/superadmin/statistic">
-                                    <i class="fa-solid fa-chart-line"></i>
-                                 <span>Statistic</span></a>
-                            </li>
+            <div class="sb-sidenav-menu">
+                <div class="nav">
+
+                    {{-- HEADING --}}
+                    <div class="sb-sidenav-menu-heading">Super Admin</div>
+
+                    {{-- KELOLA USER --}}
+                    @if(Auth::user()->role === 'super_admin')
+                    <a class="nav-link {{ request()->routeIs('superadmin.user.*') ? 'active' : '' }}"
+                       href="{{ route('superadmin.user.index') }}">
+                        <div class="sb-nav-link-icon">
+                            <i class="fas fa-user"></i>
                         </div>
-                    </div>
-                    <div class="sb-sidenav-footer">
-                        <div class="small">Logged in as:</div>
-                        {{ Auth::user()->name }}
-                    </div>
-                </nav>
+                        Kelola User
+                    </a>
+                    @endif
+
+                    {{-- SIMPANAN --}}
+                    @if(in_array(Auth::user()->role, ['super_admin','admin']))
+                    <a class="nav-link {{ request()->routeIs('superadmin.saving.*') ? 'active' : '' }}"
+                       href="{{ route('superadmin.saving.index') }}">
+                        <div class="sb-nav-link-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        Simpanan
+                    </a>
+                    @endif
+
+                    {{-- TRANSAKSI --}}
+                    @if(in_array(Auth::user()->role, ['super_admin','teller']))
+                    <a class="nav-link" href="#">
+                        <div class="sb-nav-link-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        Transaksi
+                    </a>
+                    @endif
+
+                    {{-- STATISTIK --}}
+                    <a class="nav-link {{ request()->is('superadmin/statistic') ? 'active' : '' }}"
+                       href="{{ url('/superadmin/statistic') }}">
+                        <div class="sb-nav-link-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        Statistik
+                    </a>
+
+                </div>
             </div>
-        </div>
+
+            {{-- FOOTER --}}
+            <div class="sb-sidenav-footer">
+                <div class="small">Logged in as:</div>
+                {{ Auth::user()->name }}
+            </div>
+
+        </nav>
+
+    </div>
+</div>

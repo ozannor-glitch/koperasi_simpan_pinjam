@@ -91,8 +91,10 @@ Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
     Route::post('/saving/store', [AdminSavingController::class, 'store'])->name('saving.store');
     Route::post('/saving/withdraw', [AdminSavingController::class, 'withdraw'])->name('saving.withdraw');
     Route::get('/saving/transactions', [AdminSavingController::class, 'transactions'])->name('saving.transactions');
-    Route::post('/saving/{id}/approve', [AdminSavingController::class, 'approve'])->name('superadmin.saving.approve');
-    Route::post('/saving/{id}/reject', [AdminSavingController::class, 'reject'])->name('superadmin.saving.reject');
+    Route::post('/saving/generate-bunga', [AdminSavingController::class, 'generateBunga'])
+    ->name('saving.bunga');
+    Route::post('/saving/{id}/approve', [AdminSavingController::class, 'approve'])->name('saving.approve');
+    Route::post('/saving/{id}/reject', [AdminSavingController::class, 'reject'])->name('saving.reject');
     Route::delete('/saving/{id}', [AdminSavingController::class, 'destroy'])->name('saving.destroy');
 });
 

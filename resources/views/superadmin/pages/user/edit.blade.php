@@ -83,13 +83,7 @@
         <option value="admin_keuangan" {{ $user->role == 'admin_keuangan' ? 'selected' : '' }}>Admin Keuangan</option>
         <option value="admin_umum" {{ $user->role == 'admin_umum' ? 'selected' : '' }}>Admin Umum</option>
         <option value="teller" {{ $user->role == 'teller' ? 'selected' : '' }}>Teller</option>
-        <option value="anggota" {{ $user->role == 'anggota' ? 'selected' : '' }}>anggota</option>
-        </select>
-
-        <select name="status">
-        <option value="calon" {{ $user->status == 'calon' ? 'selected' : '' }}>Calon</option>
-        <option value="aktif" {{ $user->role == 'aktif' ? 'selected' : '' }}>Aktif</option>
-        <option value="nonaktif" {{ $user->role == 'nonaktif' ? 'selected' : '' }}>Non-Aktif</option>
+        <option value="anggota" {{ $user->role == 'anggota' ? 'selected' : '' }}>Anggota</option>
         </select>
 
         <div class="form-group">

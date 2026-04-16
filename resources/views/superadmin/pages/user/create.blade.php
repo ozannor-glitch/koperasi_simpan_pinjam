@@ -67,16 +67,7 @@
                 <select name="role" class="form-control">
                     <option value="admin_keuangan">Admin Keuangan</option>
                     <option value="teller">Teller</option>
-                    <option value="anggota">Anggota</option> <!-- 🔥 tambah ini -->
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label>Role</label>
-                <select name="role" class="form-control">
-                    <option value="calon">Calon</option>
-                    <option value="aktif">Aktif</option>
-                    <option value="nonaktif">Nonaktif</option> <!-- 🔥 tambah ini -->
+                    <option value="teller">Anggota</option>
                 </select>
             </div>
 
