@@ -429,4 +429,178 @@ class SavingController extends Controller
             ], 500);
         }
     }
+
+     public function getUserBalance()
+    {
+        try {
+            $user = Auth::user();
+
+            // Ambil semua jenis tabungan
+            $savingTypes = SavingType::all();
+
+            $balances = [];
+            $totalBalance = 0;
+
+            foreach ($savingTypes as $type) {
+                // Cari saldo user untuk setiap jenis tabungan
+                $memberSaving = MemberSaving::where('user_id', $user->id)
+                    ->where('saving_type_id', $type->id)
+                    ->first();
+
+                $balance = $memberSaving ? (float) $memberSaving->balance : 0;
+                $totalBalance += $balance;
+
+                // Tentukan bunga (khusus Deposito yang punya bunga)
+                $bunga = null;
+                if ($type->name === 'Deposito') {
+                    $bunga = '2%'; // Bunga deposito per tahun
+                }
+
+                $balances[] = [
+                    'id' => $type->id,
+                    'name' => $type->name,
+                    'balance' => $balance,
+                    'balance_formatted' => 'Rp ' . number_format($balance, 0, ',', '.'),
+                    'minimum_amount' => (float) $type->minimum_amount,
+                    'minimum_amount_formatted' => 'Rp ' . number_format($type->minimum_amount, 0, ',', '.'),
+                    'bunga' => $bunga,
+                ];
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data saldo berhasil diambil',
+                'data' => [
+                    'balances' => $balances,
+                    'total_balance' => $totalBalance,
+                    'total_balance_formatted' => 'Rp ' . number_format($totalBalance, 0, ',', '.'),
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data saldo',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get balance for specific saving type
+     * Endpoint: GET /api/user-balance/{savingTypeId}
+     */
+    public function getUserBalanceByType($savingTypeId)
+    {
+        try {
+            $user = Auth::user();
+
+            $savingType = SavingType::find($savingTypeId);
+            if (!$savingType) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jenis tabungan tidak ditemukan'
+                ], 404);
+            }
+
+            $memberSaving = MemberSaving::where('user_id', $user->id)
+                ->where('saving_type_id', $savingTypeId)
+                ->first();
+
+            $balance = $memberSaving ? (float) $memberSaving->balance : 0;
+
+            // Tentukan bunga (khusus Deposito)
+            $bunga = null;
+            if ($savingType->name === 'Deposito') {
+                $bunga = '12%';
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data saldo berhasil diambil',
+                'data' => [
+                    'id' => $savingType->id,
+                    'name' => $savingType->name,
+                    'balance' => $balance,
+                    'balance_formatted' => 'Rp ' . number_format($balance, 0, ',', '.'),
+                    'minimum_amount' => (float) $savingType->minimum_amount,
+                    'minimum_amount_formatted' => 'Rp ' . number_format($savingType->minimum_amount, 0, ',', '.'),
+                    'bunga' => $bunga,
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data saldo',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all transactions for user (history)
+     * Endpoint: GET /api/all-transactions
+     */
+    public function getAllTransactions(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            $query = SavingTransaction::with('savingType')
+                ->where('user_id', $user->id)
+                ->where('status', SavingTransaction::STATUS_SUCCESS)
+                ->orderBy('created_at', 'desc');
+
+            // Filter by transaction type
+            if ($request->has('type') && in_array($request->type, ['setor', 'tarik'])) {
+                $query->where('transaction_type', $request->type);
+            }
+
+            // Filter by saving type
+            if ($request->has('saving_type_id')) {
+                $query->where('saving_type_id', $request->saving_type_id);
+            }
+
+            // Pagination
+            $perPage = $request->get('per_page', 15);
+            $transactions = $query->paginate($perPage);
+
+            // Format response
+            $formattedTransactions = $transactions->map(function($item) {
+                return [
+                    'id' => $item->id,
+                    'type' => $item->transaction_type,
+                    'type_text' => $item->transaction_type == 'setor' ? 'Setoran' : 'Penarikan',
+                    'amount' => (float) $item->amount,
+                    'amount_formatted' => 'Rp ' . number_format($item->amount, 0, ',', '.'),
+                    'saving_type' => $item->savingType->name,
+                    'status' => $item->status,
+                    'date' => $item->created_at->format('d F Y H:i'),
+                    'date_raw' => $item->created_at,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Riwayat transaksi berhasil diambil',
+                'data' => [
+                    'transactions' => $formattedTransactions,
+                    'pagination' => [
+                        'current_page' => $transactions->currentPage(),
+                        'per_page' => $transactions->perPage(),
+                        'total' => $transactions->total(),
+                        'last_page' => $transactions->lastPage(),
+                    ]
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil riwayat transaksi',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

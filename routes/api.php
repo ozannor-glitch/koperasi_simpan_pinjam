@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\SavingController;
+
 use App\Http\Controllers\Api\PaymentController;
+
 
 // Route untuk bookmark, hanya bisa diakses oleh user yang sudah login, menggunakan middleware auth:sanctum
 Route::middleware('auth:sanctum')->group(function () {
@@ -25,7 +27,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('deposit', [SavingController::class, 'deposit']);
     Route::post('withdraw', [SavingController::class, 'withdraw']);
 
-    // Midtrans Routes
+    Route::get('user-balance', [SavingController::class, 'getUserBalance']);
+    Route::get('user-balance/{id}', [SavingController::class, 'getUserBalanceByType']);
+    Route::get('all-transactions', [SavingController::class, 'getAllTransactions']);
+
      // Payment routes
     Route::post('payment/request', [PaymentController::class, 'requestPayment']);
     Route::get('payment/status/{orderId}', [PaymentController::class, 'checkPaymentStatus']);
