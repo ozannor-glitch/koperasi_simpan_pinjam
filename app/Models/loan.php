@@ -6,6 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Loan extends Model
 {
+    protected $fillable = [
+    'user_id',
+    'loan_type_id',
+    'total_amount',
+    'tenor',
+    'status'
+];
     public function index()
 {
     $loans = \App\Models\Loan::with(['user','loanType'])->latest()->get();
