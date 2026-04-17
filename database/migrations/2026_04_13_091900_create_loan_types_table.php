@@ -13,11 +13,16 @@ return new class extends Migration
     {
         Schema::create('loan_types', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('loan_type_id')->constrained('loan_types')->cascadeOnDelete();
-            $table->decimal('total_amount', 15, 2);
-            $table->integer('tenor');
-            $table->string('status')->default('pending');
+
+            $table->string('name'); // nama jenis pinjaman
+
+            $table->decimal('max_plafon', 15, 2);
+
+            $table->decimal('interest_rate_percent', 5, 2);
+            // contoh: 2.50 (%)
+
+            $table->integer('max_tenor_months');
+
             $table->timestamps();
         });
     }

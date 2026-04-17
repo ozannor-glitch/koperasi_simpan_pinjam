@@ -29,7 +29,7 @@
     @method('PUT')
 
          <div class="form-group">
-                        <label for="KTP">Foto KTP</label>
+                        <label for="user">User</label>
                         <input type="file" class="form-control-file @error('KTP') is-invalid @enderror" id="KTP" name="KTP">
                         <small class="form-text text-muted">Biarkan Kosong jika tidak ingin mengganti foto.</small>
                         @if($user->KTP)

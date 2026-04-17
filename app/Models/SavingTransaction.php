@@ -15,6 +15,8 @@ class SavingTransaction extends Model
         'transaction_type',
         'amount',
         'status',
+        'order_id',
+        'payment_method',
     ];
 
     protected $casts = [

@@ -3,35 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\SavingType;
-<<<<<<< HEAD
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-=======
->>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
 use Illuminate\Database\Seeder;
 
 class SavingTypeSeeder extends Seeder
 {
-<<<<<<< HEAD
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
-    {
-          SavingType::create([
-        'name' => 'Wajib',
-        'minimum_amount' => 10000
-    ]);
-
-    SavingType::create([
-        'name' => 'Sukarela',
-        'minimum_amount' => 0
-    ]);
-
-     SavingType::create([
-        'name' => 'Deposito',
-        'minimum_amount' => 1000000
-    ]);
-=======
     public function run()
     {
         $types = [
@@ -55,6 +30,5 @@ class SavingTypeSeeder extends Seeder
                 ['minimum_amount' => $type['minimum_amount']]
             );
         }
->>>>>>> d21c2f7 (tambah api saving, data profil user, dan perbaikan register)
     }
 }
