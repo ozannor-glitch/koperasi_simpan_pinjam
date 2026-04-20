@@ -40,15 +40,6 @@
 
                         {{-- FILTER DI KOLOM AKSI --}}
                             <th style="width:180px;">
-                                <a href="{{ route('superadmin.penarikan.edit',$item->id) }}" class="btn btn-warning btn-sm">
-                                    Edit
-                                </a>
-
-                                <form action="{{ route('superadmin.penarikan.destroy',$item->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-danger btn-sm">Hapus</button>
-                                </form>
                                 <small class="text-white">Filter</small>
 
                                 <form method="GET" action="{{ route('superadmin.penarikan.index') }}">
@@ -136,6 +127,17 @@
                                         </button>
                                     </form>
                                 @endif
+
+                                     <a href="{{ route('superadmin.penarikan.edit',$item->id) }}" class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
+
+                                <form action="{{ route('superadmin.penarikan.destroy',$item->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger btn-sm">Hapus</button>
+                                </form>
+
                             </td>
                         </tr>
 
