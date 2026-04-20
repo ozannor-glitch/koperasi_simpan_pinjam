@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\SavingController;
-
+use App\Http\Controllers\Api\LoanController;
 use App\Http\Controllers\Api\PaymentController;
 
 
@@ -38,6 +38,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Callback routes (redirect)
     Route::get('payment/success', [PaymentController::class, 'paymentSuccess']);
     Route::get('payment/failed', [PaymentController::class, 'paymentFailed']);
+
+    // Loan routes
+    Route::get('loan-types', [LoanController::class, 'getLoanTypes']);
+    Route::post('loans/submit', [LoanController::class, 'submitLoan']);
+    Route::get('my-loans', [LoanController::class, 'getMyLoans']);
+    Route::get('loans/{id}', [LoanController::class, 'getLoanDetail']);
+    Route::post('loans/pay-installment', [LoanController::class, 'payInstallment']);
+    Route::get('loan-summary', [LoanController::class, 'getLoanSummary']);
 
 });
 
