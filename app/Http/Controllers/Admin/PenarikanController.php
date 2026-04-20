@@ -34,45 +34,75 @@ class PenarikanController extends Controller
     return view('superadmin.pages.penarikan.index', compact('data'));
     }
 
-        public function create()
-    {
-        $users = User::where('role','anggota')->get();
-        $savings = MemberSaving::with('user','savingType')->get();
+   public function create()
+{
+    $users = User::where('role','anggota')->get();
 
-        return view('superadmin.pages.penarikan.create', compact('users','savings'));
+    $savings = MemberSaving::with('user','savingType')
+        ->get()
+        ->map(function ($s) {
+
+            // 🔥 hitung penarikan pending + approved
+            $pending = Penarikan::where('member_saving_id', $s->id)
+                ->whereIn('status', ['pending','approved'])
+                ->sum('jumlah');
+
+            // 🔥 saldo tersedia
+            $s->available_balance = $s->balance - $pending;
+
+            return $s;
+        });
+
+    return view('superadmin.pages.penarikan.create', compact('users','savings'));
+}
+
+
+public function store(Request $request)
+{
+    $request->validate([
+        'member_saving_id' => 'required',
+        'jumlah' => 'required|numeric|min:1000',
+        'bank' => 'required',
+        'no_rekening' => 'required',
+        'nama_rekening' => 'required'
+    ]);
+
+    $saving = MemberSaving::with('savingType')->findOrFail($request->member_saving_id);
+
+    // ❌ BLOCK SIMPANAN WAJIB
+    if (strtolower($saving->savingType->name) == 'wajib') {
+        return back()->with('error','Simpanan wajib tidak bisa ditarik');
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'member_saving_id' => 'required',
-            'jumlah' => 'required|numeric|min:1000',
-            'bank' => 'required',
-            'no_rekening' => 'required',
-            'nama_rekening' => 'required'
-        ]);
+    // 🔥 HITUNG PENARIKAN YANG MASIH PROSES
+    $pending = Penarikan::where('member_saving_id', $saving->id)
+        ->whereIn('status', ['pending','approved'])
+        ->sum('jumlah');
 
-        $saving = MemberSaving::findOrFail($request->member_saving_id);
+    // 🔥 SALDO TERSEDIA
+    $available = $saving->balance - $pending;
 
-        if ($saving->balance < $request->jumlah) {
-            return back()->with('error','Saldo tidak cukup');
-        }
-
-        Penarikan::create([
-            'kode_penarikan' => 'WD-'.rand(1000,9999),
-            'user_id' => $saving->user_id,
-            'member_saving_id' => $request->member_saving_id,
-            'jumlah' => $request->jumlah,
-            'jumlah_diterima' => $request->jumlah,
-            'bank' => $request->bank,
-            'no_rekening' => $request->no_rekening,
-            'nama_rekening' => $request->nama_rekening,
-            'status' => 'pending'
-        ]);
-
-        return redirect()->route('superadmin.penarikan.index')
-            ->with('success','Penarikan berhasil dibuat');
+    // ❌ VALIDASI
+    if ($request->jumlah > $available) {
+        return back()->with('error','Saldo tersedia tidak cukup');
     }
+
+    // ✅ SIMPAN
+    Penarikan::create([
+        'kode_penarikan' => 'WD-'.rand(1000,9999),
+        'user_id' => $saving->user_id,
+        'member_saving_id' => $request->member_saving_id,
+        'jumlah' => $request->jumlah,
+        'jumlah_diterima' => $request->jumlah,
+        'bank' => $request->bank,
+        'no_rekening' => $request->no_rekening,
+        'nama_rekening' => $request->nama_rekening,
+        'status' => 'pending'
+    ]);
+
+    return redirect()->route('superadmin.penarikan.index')
+        ->with('success','Penarikan berhasil dibuat');
+}
 
     public function edit($id)
     {
@@ -237,6 +267,31 @@ class PenarikanController extends Controller
     return back()->with('success','Penarikan selesai & saldo dipotong');
     }
 
+    public function cancel($id)
+{
+    DB::transaction(function () use ($id) {
+
+        $penarikan = Penarikan::lockForUpdate()->findOrFail($id);
+
+        // hanya bisa cancel jika sudah approved / completed
+        if (!in_array($penarikan->status, ['approved','completed'])) {
+            throw new \Exception('Tidak bisa dibatalkan');
+        }
+
+        $saving = MemberSaving::lockForUpdate()->findOrFail($penarikan->member_saving_id);
+
+        // 🔥 kembalikan saldo
+        $saving->balance += $penarikan->jumlah;
+        $saving->save();
+
+        // update status
+        $penarikan->status = 'cancelled';
+        $penarikan->save();
+    });
+
+    return back()->with('success','Penarikan dibatalkan & saldo dikembalikan');
+}
+
     public function destroy($id)
     {
         $data = Penarikan::findOrFail($id);
@@ -249,5 +304,7 @@ class PenarikanController extends Controller
 
         return back()->with('success','Penarikan berhasil dihapus');
     }
+
+
 
 }

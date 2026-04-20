@@ -11,6 +11,9 @@ class LoanInstallment extends Model
     'installment_number',
     'due_date',
     'amount_due',
+    'principal',
+    'interest',
+    'remaining_balance',
     'status'
 ];
     public function loan()

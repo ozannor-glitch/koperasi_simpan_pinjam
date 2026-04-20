@@ -21,11 +21,44 @@
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
 
+            {{-- HEADER: BUTTON + FILTER --}}
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+
+            {{-- LEFT --}}
+            <a href="{{ route('superadmin.penarikan.create') }}" class="btn btn-success">
+                + Tambah Penarikan
+            </a>
+
+            {{-- RIGHT --}}
+            <form method="GET"
+                action="{{ route('superadmin.penarikan.index') }}"
+                class="d-flex align-items-center gap-2">
+
+                <select name="bank" class="form-select" style="width:160px;">
+                    <option value="">Semua Bank</option>
+                    <option value="BCA" {{ request('bank')=='BCA'?'selected':'' }}>BCA</option>
+                    <option value="BRI" {{ request('bank')=='BRI'?'selected':'' }}>BRI</option>
+                    <option value="BNI" {{ request('bank')=='BNI'?'selected':'' }}>BNI</option>
+                    <option value="Mandiri" {{ request('bank')=='Mandiri'?'selected':'' }}>Mandiri</option>
+                </select>
+
+                <select name="status" class="form-select" style="width:160px;">
+                    <option value="all">Semua Status</option>
+                    <option value="pending" {{ request('status')=='pending'?'selected':'' }}>Pending</option>
+                    <option value="approved" {{ request('status')=='approved'?'selected':'' }}>Approved</option>
+                    <option value="rejected" {{ request('status')=='rejected'?'selected':'' }}>Rejected</option>
+                    <option value="completed" {{ request('status')=='completed'?'selected':'' }}>Completed</option>
+                </select>
+
+                <button class="btn btn-primary">Filter</button>
+
+            </form>
+
+        </div>
+
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
-                    <a href="{{ route('superadmin.penarikan.create') }}" class="btn btn-success mb-3">
-                        + Tambah Penarikan
-                    </a>
+
                     <thead class="table-dark">
                     <tr>
                         <th>No</th>
@@ -37,39 +70,8 @@
                         <th>Bank</th>
                         <th>Rekening</th>
                         <th>Status</th>
+                        <th>Aksi</th>
 
-                        {{-- FILTER DI KOLOM AKSI --}}
-                            <th style="width:180px;">
-                                <small class="text-white">Filter</small>
-
-                                <form method="GET" action="{{ route('superadmin.penarikan.index') }}">
-
-                                    {{-- BANK --}}
-                                    <select name="bank"
-                                            class="form-select form-select-sm mb-1"
-                                            onchange="this.form.submit()">
-                                        <option value="">Semua Bank</option>
-                                        <option value="BCA" {{ request('bank')=='BCA'?'selected':'' }}>BCA</option>
-                                        <option value="BRI" {{ request('bank')=='BRI'?'selected':'' }}>BRI</option>
-                                        <option value="BNI" {{ request('bank')=='BNI'?'selected':'' }}>BNI</option>
-                                        <option value="Mandiri" {{ request('bank')=='Mandiri'?'selected':'' }}>Mandiri</option>
-                                    </select>
-
-                                    {{-- STATUS --}}
-                                    <select name="status"
-                                            class="form-select form-select-sm"
-                                            onchange="this.form.submit()">
-
-                                        <option value="all">Semua Status</option>
-                                        <option value="pending" {{ request('status')=='pending'?'selected':'' }}>Pending</option>
-                                        <option value="approved" {{ request('status')=='approved'?'selected':'' }}>Approved</option>
-                                        <option value="rejected" {{ request('status')=='rejected'?'selected':'' }}>Rejected</option>
-                                        <option value="completed" {{ request('status')=='completed'?'selected':'' }}>Completed</option>
-
-                                    </select>
-
-                                </form>
-                            </th>
                         </tr>
                     </thead>
 
@@ -82,13 +84,19 @@
                             <td>Rp {{ number_format($item->memberSaving->balance, 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($item->jumlah, 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($item->jumlah_diterima, 0, ',', '.') }}</td>
-                            <td>
-                                {{ $item->bank ?? '-' }}
+                          <td>
+                                <span class="badge bg-dark">
+                                    {{ $item->bank ?: '-' }}
+                                </span>
                             </td>
 
                             <td>
-                                {{ $item->no_rekening ?? '-' }} <br>
-                                <small>{{ $item->nama_rekening }}</small>
+                                <div>
+                                    <strong>{{ $item->no_rekening ?: '-' }}</strong><br>
+                                    <small class="text-muted">
+                                        {{ $item->nama_rekening ?: '-' }}
+                                    </small>
+                                </div>
                             </td>
                             <td>
                                 @if($item->status == 'pending')

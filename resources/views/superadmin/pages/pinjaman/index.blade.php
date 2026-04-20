@@ -10,7 +10,7 @@
     <div class="card-header d-flex justify-content-between">
         <span>Data Pinjaman</span>
         <a href="{{ route('superadmin.pinjaman.create') }}" class="btn btn-primary btn-sm">
-            + Ajukan Pinjaman
+            + Input Pinjaman offline
         </a>
     </div>
 

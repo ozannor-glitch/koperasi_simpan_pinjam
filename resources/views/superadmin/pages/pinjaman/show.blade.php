@@ -96,6 +96,59 @@
         </a>
     </div>
 @endif
+<hr>
+
+<h5>📊 Jadwal Angsuran</h5>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-success">
+        <tr>
+            <th>Angsuran ke</th>
+            <th>Pokok</th>
+            <th>Bunga</th>
+            <th>Total</th>
+            <th>Sisa</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @forelse($loan->installments as $i)
+        <tr>
+            <td>{{ $i->installment_number }}</td>
+            <td>Rp {{ number_format($i->principal ?? 0,0,',','.') }}</td>
+            <td>Rp {{ number_format($i->interest ?? 0,0,',','.') }}</td>
+            <td>Rp {{ number_format($i->amount_due,0,',','.') }}</td>
+            <td>Rp {{ number_format($i->remaining_balance ?? 0,0,',','.') }}</td>
+
+            <td>
+                <span class="badge bg-{{ $i->status == 'paid' ? 'success' : 'warning' }}">
+                    {{ $i->status }}
+                </span>
+            </td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="6" class="text-center text-muted">
+                if ($loan->installments()->count() == 0) {
+    for ($i = 1; $i <= 6; $i++) {
+        \App\Models\LoanInstallment::create([
+            'loan_id' => $loan->id,
+            'installment_number' => $i,
+            'principal' => 50000,
+            'interest' => 5000,
+            'amount_due' => 55000,
+            'remaining_balance' => 300000 - ($i * 50000),
+            'due_date' => now()->addMonths($i),
+            'status' => 'unpaid'
+        ]);
+    }
+}
+            </td>
+        </tr>
+        @endforelse
+    </tbody>
+</table>
 
     </div>
 </div>

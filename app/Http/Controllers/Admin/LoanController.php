@@ -82,14 +82,51 @@ class LoanController extends Controller
         return view('superadmin.pages.pinjaman.show', compact('loan'));
     }
 
-    public function generateInstallments($loan)
+public function generateInstallments($loan)
 {
-    // contoh sederhana dulu
-    for ($i = 1; $i <= $loan->tenor; $i++) {
+    $P = $loan->total_amount;
+    $n = $loan->tenor;
+
+    $type = $loan->loanType;
+    $r = $type->interest_rate_percent / 100;
+
+    $method = $type->interest_method ?? 'flat'; // flat | efektif | anuitas
+
+    $remaining = $P;
+
+    for ($i = 1; $i <= $n; $i++) {
+
+        if ($method == 'flat') {
+
+            $principal = $P / $n;
+            $interest = $P * $r;
+            $total = $principal + $interest;
+
+        } elseif ($method == 'efektif') {
+
+            $principal = $P / $n;
+            $interest = $remaining * $r;
+            $total = $principal + $interest;
+
+        } elseif ($method == 'anuitas') {
+
+            $A = $P * ($r * pow(1+$r, $n)) / (pow(1+$r, $n) - 1);
+
+            $interest = $remaining * $r;
+            $principal = $A - $interest;
+            $total = $A;
+
+        }
+
+        $remaining -= $principal;
+
         \App\Models\LoanInstallment::create([
             'loan_id' => $loan->id,
             'installment_number' => $i,
-            'amount' => $loan->total_amount / $loan->tenor,
+            'principal' => $principal,
+            'interest' => $interest,
+            'amount_due' => $total,
+            'remaining_balance' => max($remaining, 0),
             'due_date' => now()->addMonths($i),
             'status' => 'unpaid'
         ]);
@@ -97,10 +134,15 @@ class LoanController extends Controller
 }
 public function updateStatus(Request $request, $id)
 {
-    $loan = Loan::findOrFail($id);
+    $loan = Loan::with('loanType')->findOrFail($id);
 
     $loan->status = $request->status;
     $loan->save();
+
+     // 🔥 TAMBAHKAN INI
+        if ($request->status == 'approved') {
+            $loan->generateInstallments();
+        }
 
     return back()->with('success','Status diperbarui');
 }

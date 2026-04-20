@@ -12,6 +12,9 @@ class Penarikan extends Model
         'jumlah',
         'biaya_admin',
         'jumlah_diterima',
+        'bank',
+        'no_rekening',
+        'nama_rekening',
         'status'
     ];
 

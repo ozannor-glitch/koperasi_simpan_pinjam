@@ -124,6 +124,8 @@ Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
     Route::post('/penarikan/{id}/approve', [PenarikanController::class, 'approve'])->name('penarikan.approve');
     Route::post('/penarikan/{id}/reject/', [PenarikanController::class, 'reject'])->name('penarikan.reject');
     Route::post('/penarikan/{id}/complete', [PenarikanController::class, 'complete'])->name('penarikan.complete');
+    Route::post('/penarikan/{id}/cancel', [PenarikanController::class, 'cancel'])
+    ->name('penarikan.cancel');
 });
 
 //CRUD Tabel Pinjaman

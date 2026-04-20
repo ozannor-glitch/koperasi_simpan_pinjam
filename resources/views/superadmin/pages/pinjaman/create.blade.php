@@ -9,7 +9,7 @@
 
 <div class="card shadow-sm">
     <div class="card-header bg-success text-white">
-        💰 Ajukan Pinjaman
+        💰 Input Pinjaman Offline
     </div>
 
     {{-- Pesan Error --}}
@@ -61,6 +61,9 @@
             </div>
 
             <button class="btn btn-success">Ajukan</button>
+             <a href="{{ route('superadmin.pinjaman.index') }}" class="btn btn-secondary">
+            ← Kembali
+        </a>
         </form>
 
     </div>

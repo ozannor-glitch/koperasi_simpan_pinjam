@@ -20,4 +20,5 @@ class LoanInstallmentController extends Controller
         $installment = LoanInstallment::findOrFail($id);
         return view('installments.show', compact('installment'));
     }
+  
 }
