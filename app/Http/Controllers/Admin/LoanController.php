@@ -95,4 +95,28 @@ class LoanController extends Controller
         ]);
     }
 }
+public function updateStatus(Request $request, $id)
+{
+    $loan = Loan::findOrFail($id);
+
+    $loan->status = $request->status;
+    $loan->save();
+
+    return back()->with('success','Status diperbarui');
+}
+public function uploadAkad(Request $request, $id)
+{
+    $request->validate([
+        'akad_file' => 'required|file|mimes:pdf,jpg,png|max:2048'
+    ]);
+
+    $loan = Loan::findOrFail($id);
+
+    $file = $request->file('akad_file')->store('akad', 'public');
+
+    $loan->akad_file = $file;
+    $loan->save();
+
+    return back()->with('success','Dokumen berhasil diupload');
+}
 }

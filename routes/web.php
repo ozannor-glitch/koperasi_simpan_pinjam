@@ -109,7 +109,17 @@ Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
     ->name('superadmin.')->group(function () {
 
     Route::get('/penarikan', [PenarikanController::class, 'index'])->name('penarikan.index');
-    Route::get('/penarikan/{id}', [PenarikanController::class, 'show'])->name('penarikan.show');
+    // create & store
+    Route::get('/penarikan/create', [PenarikanController::class, 'create'])->name('penarikan.create');
+    Route::post('/penarikan/store', [PenarikanController::class, 'store'])->name('penarikan.store');
+
+    // edit & update
+    Route::get('/penarikan/{id}/edit', [PenarikanController::class, 'edit'])->name('penarikan.edit');
+    Route::put('/penarikan/{id}', [PenarikanController::class, 'update'])->name('penarikan.update');
+
+    // delete
+    Route::delete('/penarikan/{id}', [PenarikanController::class, 'destroy'])->name('penarikan.destroy');
+        Route::get('/penarikan/{id}', [PenarikanController::class, 'show'])->name('penarikan.show');
 
     Route::post('/penarikan/{id}/approve', [PenarikanController::class, 'approve'])->name('penarikan.approve');
     Route::post('/penarikan/{id}/reject/', [PenarikanController::class, 'reject'])->name('penarikan.reject');
@@ -121,6 +131,10 @@ Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
     ->name('superadmin.')->group(function () {
 
 Route::resource('pinjaman', LoanController::class);
+Route::post('/pinjaman/{id}/status', [LoanController::class, 'updateStatus'])
+    ->name('pinjaman.updateStatus');
+Route::post('/pinjaman/{id}/upload-akad', [LoanController::class, 'uploadAkad'])
+    ->name('pinjaman.uploadAkad');
 Route::get('approvals', [LoanApprovalController::class,'index']);
 Route::post('approve/{id}', [LoanApprovalController::class,'approve']);
 Route::post('reject/{id}', [LoanApprovalController::class,'reject']);

@@ -60,4 +60,5 @@ public function generateInstallments()
         ]);
     }
 }
+
 }

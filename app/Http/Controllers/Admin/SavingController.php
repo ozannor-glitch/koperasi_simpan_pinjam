@@ -11,23 +11,33 @@ use Illuminate\Http\Request;
 
 class SavingController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-      $users = User::where('role', 'anggota')->get();
+       $users = User::where('role', 'anggota')->get();
+    $savingTypes = SavingType::all();
 
-    $savingTypes = SavingType::all(); // 🔥 penting
+    $query = MemberSaving::with('user','savingType');
 
-    $savings = MemberSaving::with('user','savingType')
-        ->latest()
-        ->paginate(5);
+    // 🔥 FILTER SALDO
+    if ($request->filled('user_id')) {
+        $query->where('user_id', $request->user_id);
+    }
 
-    $transactions = SavingTransaction::with('user','savingType')->latest()->get();
+    $savings = $query->latest()->paginate(5);
+
+    $totalSaldo = (clone $query)->sum('balance');
+
+    // 🔥 FILTER HISTORI
+    $trxQuery = SavingTransaction::with('user','savingType');
+
+    if ($request->filled('user_id')) {
+        $trxQuery->where('user_id', $request->user_id);
+    }
+
+    $transactions = $trxQuery->latest()->get();
 
     return view('superadmin.pages.saving.index', compact(
-        'users',
-        'savingTypes',
-        'savings',
-        'transactions'
+        'users','savingTypes','savings','transactions','totalSaldo'
     ));
     }
 

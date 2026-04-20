@@ -23,6 +23,9 @@
 
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
+                    <a href="{{ route('superadmin.penarikan.create') }}" class="btn btn-success mb-3">
+                        + Tambah Penarikan
+                    </a>
                     <thead class="table-dark">
                     <tr>
                         <th>No</th>
@@ -37,6 +40,15 @@
 
                         {{-- FILTER DI KOLOM AKSI --}}
                             <th style="width:180px;">
+                                <a href="{{ route('superadmin.penarikan.edit',$item->id) }}" class="btn btn-warning btn-sm">
+                                    Edit
+                                </a>
+
+                                <form action="{{ route('superadmin.penarikan.destroy',$item->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger btn-sm">Hapus</button>
+                                </form>
                                 <small class="text-white">Filter</small>
 
                                 <form method="GET" action="{{ route('superadmin.penarikan.index') }}">

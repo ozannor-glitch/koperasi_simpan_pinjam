@@ -10,34 +10,18 @@
 <div class="card card-custom p-4 mb-4">
     <h4 class="mb-3">💰 Setor Simpanan</h4>
 
-    <form action="{{ route('superadmin.saving.store') }}" method="POST">
-        @csrf
-
-        <div class="mb-2">
-            <label>Anggota</label>
-            <select name="user_id" class="form-control">
-                @foreach($users as $u)
-                    <option value="{{ $u->id }}">{{ $u->name }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="mb-2">
-            <label>Jenis Simpanan</label>
-            <select name="saving_type_id" class="form-control">
-                @foreach($savingTypes as $type)
-                    <option value="{{ $type->id }}">{{ $type->name }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="mb-3">
-            <label>Jumlah</label>
-            <input type="number" name="amount" class="form-control" placeholder="Masukkan jumlah">
-        </div>
-
-        <button class="btn btn-green w-100">Setor</button>
-    </form>
+    <form method="GET" action="{{ route('superadmin.saving.index') }}">
+    <label>Anggota</label>
+    <select name="user_id" class="form-control" onchange="this.form.submit()">
+        <option value="">-- Semua Anggota --</option>
+        @foreach($users as $u)
+            <option value="{{ $u->id }}"
+                {{ request('user_id') == $u->id ? 'selected' : '' }}>
+                {{ $u->name }}
+            </option>
+        @endforeach
+    </select>
+</form>
 </div>
 
 {{-- ================= TOTAL ================= --}}

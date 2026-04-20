@@ -55,7 +55,7 @@
                     </td>
 
                     <td>
-                        <a href="{{ route('superadmin.pinjaman..show', $loan->id) }}" class="btn btn-info btn-sm">
+                        <a href="{{ route('superadmin.pinjaman.show', $loan->id) }}" class="btn btn-info btn-sm">
                             Detail
                         </a>
                     </td>
