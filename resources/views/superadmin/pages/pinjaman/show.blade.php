@@ -130,20 +130,7 @@
         @empty
         <tr>
             <td colspan="6" class="text-center text-muted">
-                if ($loan->installments()->count() == 0) {
-    for ($i = 1; $i <= 6; $i++) {
-        \App\Models\LoanInstallment::create([
-            'loan_id' => $loan->id,
-            'installment_number' => $i,
-            'principal' => 50000,
-            'interest' => 5000,
-            'amount_due' => 55000,
-            'remaining_balance' => 300000 - ($i * 50000),
-            'due_date' => now()->addMonths($i),
-            'status' => 'unpaid'
-        ]);
-    }
-}
+                Belum ada jadwal angsuran
             </td>
         </tr>
         @endforelse
