@@ -10,7 +10,8 @@ class LoanType extends Model
     'name',
     'max_plafon',
     'interest_rate_percent',
-    'max_tenor_months'
+    'max_tenor_months',
+    'collateral_ratio (misal 70%)'
 ];
     public function loans()
     {

@@ -3,33 +3,73 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Account;
+use App\Models\Journal;
+use App\Models\JournalItem;
 use App\Models\LoanInstallment;
 use App\Models\LoanInstallmentPayment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LoanPaymentController extends Controller
 {
-    public function pay(Request $request, $id)
-    {
-        $installment = LoanInstallment::findOrFail($id);
+  public function pay($id)
+{
+    $installment = LoanInstallment::findOrFail($id);
 
-        $penalty = 0;
-
-        if (now()->gt($installment->due_date)) {
-            $daysLate = now()->diffInDays($installment->due_date);
-            $penalty = $daysLate * 0.001 * $installment->amount_due;
-        }
-
-        LoanInstallmentPayment::create([
-            'loan_installment_id' => $id,
-            'amount_paid' => $installment->amount_due,
-            'penalty' => $penalty,
-            'paid_at' => now()
-        ]);
-
-        $installment->update(['status'=>'paid']);
-
-        return back()->with('success','Pembayaran berhasil');
+    if ($installment->status == 'paid') {
+        return back()->with('error','Sudah dibayar');
     }
 
+    try {
+  DB::transaction(function () use ($installment) {
+
+    $installment->update([
+        'status' => 'paid'
+    ]);
+
+    $journal = Journal::create([
+        'date' => now(),
+        'description' => 'Pembayaran angsuran ke-' . $installment->installment_number
+    ]);
+
+    $kas = Account::where('code','1-1001')->first();
+    $piutang = Account::where('code','1-2001')->first();
+    $bunga = Account::where('code','4001')->first();
+
+    if (!$kas || !$piutang || !$bunga) {
+        throw new \Exception('Akun tidak ditemukan, cek kode di database');
+    }
+
+    // 💰 Kas (Debit)
+    JournalItem::create([
+        'journal_id' => $journal->id,
+        'account_id' => $kas->id,
+        'debit' => $installment->amount_due,
+        'credit' => 0
+    ]);
+
+    // 📉 Piutang (Credit)
+    JournalItem::create([
+        'journal_id' => $journal->id,
+        'account_id' => $piutang->id,
+        'debit' => 0,
+        'credit' => $installment->principal
+    ]);
+
+    // 📈 Pendapatan Bunga (Credit)
+    JournalItem::create([
+        'journal_id' => $journal->id,
+        'account_id' => $bunga->id,
+        'debit' => 0,
+        'credit' => $installment->interest
+    ]);
+});
+
+        return back()->with('success','Pembayaran berhasil + jurnal masuk');
+
+    } catch (\Exception $e) {
+        return back()->with('error', $e->getMessage());
+    }
+}
 }

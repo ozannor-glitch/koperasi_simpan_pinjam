@@ -115,3 +115,12 @@ th form {
 
 /* CSS TAMPILAN SIDEBAR*/
 
+/*tabel jurnal*/
+table {
+    border-collapse: collapse;
+}
+
+td, th {
+    border: 1px solid #000;
+    padding: 6px;
+}

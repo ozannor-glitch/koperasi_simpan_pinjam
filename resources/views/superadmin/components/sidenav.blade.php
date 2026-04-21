@@ -51,6 +51,48 @@
                         Penarikan
                     </a>
 
+                    {{-- AKUNTANSI --}}
+                    <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#menuAkuntansi">
+                        <div class="sb-nav-link-icon">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        Akuntansi
+                        <div class="sb-sidenav-collapse-arrow">
+                            <i class="fas fa-angle-down"></i>
+                        </div>
+                    </a>
+
+                    <div class="collapse {{ request()->is('superadmin/akuntansi*') ? 'show' : '' }}" id="menuAkuntansi">
+                        <nav class="sb-sidenav-menu-nested nav">
+
+                            <a class="nav-link {{ request()->is('superadmin/akuntansi/jurnal*') ? 'active' : '' }}"
+                            href="{{ url('/superadmin/akuntansi/jurnal') }}">
+                                Jurnal Umum
+                            </a>
+
+                            <a class="nav-link {{ request()->is('superadmin/akuntansi/buku-besar*') ? 'active' : '' }}"
+                            href="{{ url('/superadmin/akuntansi/buku-besar') }}">
+                                Buku Besar
+                            </a>
+
+                            <a class="nav-link {{ request()->is('superadmin/akuntansi/neraca-saldo*') ? 'active' : '' }}"
+                            href="{{ url('/superadmin/akuntansi/neraca-saldo') }}">
+                                Neraca Saldo
+                            </a>
+
+                            <a class="nav-link {{ request()->is('superadmin/akuntansi/laba-rugi*') ? 'active' : '' }}"
+                            href="{{ url('/superadmin/akuntansi/laba-rugi') }}">
+                                Laporan Rugi
+                            </a>
+
+                            <a class="nav-link {{ request()->is('superadmin/akuntansi/neraca*') ? 'active' : '' }}"
+                            href="{{ url('/superadmin/akuntansi/neraca') }}">
+                                Neraca Keuangan
+                            </a>
+
+                        </nav>
+                    </div>
+
                 </div>
             </div>
 

@@ -28,5 +28,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
         LoanTypeSeeder::class,
         ]);
+
+        $this->call(AccountSeeder::class);
     }
 }

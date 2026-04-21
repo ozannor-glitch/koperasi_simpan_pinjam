@@ -11,7 +11,16 @@ class Loan extends Model
     'loan_type_id',
     'total_amount',
     'tenor',
-    'status'
+    'status',
+    'pdf',
+    'recipient_name',
+    'bank_name',
+    'account_number',
+    'collateral_name',
+    'collateral_value',
+    'collateral_photo',
+    'akad_file',
+    'rejection_reason'
 ];
     public function index()
 {

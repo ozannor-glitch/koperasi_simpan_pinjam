@@ -1,7 +1,11 @@
 <?php
 //Admin Controller
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\BalanceSheetController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\GeneralLedgerController;
+use App\Http\Controllers\Admin\IncomeStatementController;
+use App\Http\Controllers\Admin\JournalController as AdminJournalController;
 use App\Http\Controllers\Admin\LoanApprovalController;
 use App\Http\Controllers\Admin\LoanController;
 use App\Http\Controllers\Admin\LoanInstallmentController;
@@ -9,7 +13,9 @@ use App\Http\Controllers\Admin\LoanPaymentController;
 use App\Http\Controllers\Admin\LoanTypeController;
 use App\Http\Controllers\Admin\PenarikanController;
 use App\Http\Controllers\Admin\SavingController as AdminSavingController;
+use App\Http\Controllers\Admin\TrialBalanceController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\JournalController;
 use App\Http\Middleware\CheckAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -144,8 +150,31 @@ Route::post('reject/{id}', [LoanApprovalController::class,'reject']);
 Route::get('installments/{loan}', [LoanInstallmentController::class,'index']);
 Route::get('installment/{id}', [LoanInstallmentController::class,'show']);
 
-Route::post('pay/{id}', [LoanPaymentController::class,'pay']);
+Route::post('pay/{id}', [LoanPaymentController::class,'pay'])
+    ->name('pay');
 
 Route::resource('loan-types', LoanTypeController::class);
+
+});
+
+//CRUD BUKU BESAR
+Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin/akuntansi')
+    ->name('superadmin.')->group(function () {
+
+    Route::resource('jurnal', JournalController::class);
+
+   Route::get('/buku-besar', [GeneralLedgerController::class, 'index'])
+    ->name('buku.besar');
+    Route::get('/buku-besar/{id}', [GeneralLedgerController::class, 'show'])
+    ->name('buku_besar.show');
+
+    Route::get('/neraca-saldo', [TrialBalanceController::class, 'index'])
+    ->name('neraca.saldo');
+
+    Route::get('/laba-rugi', [IncomeStatementController::class, 'index'])
+    ->name('laba.rugi');
+
+    Route::get('/neraca', [BalanceSheetController::class, 'index'])
+    ->name('neraca');
 
 });

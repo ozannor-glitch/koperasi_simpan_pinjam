@@ -66,11 +66,10 @@
                 </form>
 
                 {{-- REJECT --}}
-                <form action="{{ route('superadmin.pinjaman.updateStatus', $loan->id) }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="status" value="rejected">
-                    <button class="btn btn-danger">❌ Tolak</button>
-                </form>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ $loan->id }}">
+                        Tolak
+                    </button>
+
 
             @endif
 
@@ -92,52 +91,101 @@
 @if($loan->akad_file)
     <div class="mt-2">
         <a href="{{ asset('storage/'.$loan->akad_file) }}" target="_blank" class="btn btn-info btn-sm">
-            📂 Lihat Dokumen
+            📂 Cetak Surat Dokumen
         </a>
     </div>
 @endif
 <hr>
 
-<h5>📊 Jadwal Angsuran</h5>
+<div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+        📊 Jadwal Angsuran
+    </div>
 
-<table class="table table-bordered table-striped">
-    <thead class="table-success">
-        <tr>
-            <th>Angsuran ke</th>
-            <th>Pokok</th>
-            <th>Bunga</th>
-            <th>Total</th>
-            <th>Sisa</th>
-            <th>Status</th>
-        </tr>
-    </thead>
+    <div class="card-body p-0">
+        <table class="table table-bordered table-striped mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>No</th>
+                    <th>Pokok</th>
+                    <th>Bunga</th>
+                    <th>Total</th>
+                    <th>Sisa</th>
+                    <th>Status</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
 
-    <tbody>
-        @forelse($loan->installments as $i)
-        <tr>
-            <td>{{ $i->installment_number }}</td>
-            <td>Rp {{ number_format($i->principal ?? 0,0,',','.') }}</td>
-            <td>Rp {{ number_format($i->interest ?? 0,0,',','.') }}</td>
-            <td>Rp {{ number_format($i->amount_due,0,',','.') }}</td>
-            <td>Rp {{ number_format($i->remaining_balance ?? 0,0,',','.') }}</td>
+            @forelse($loan->installments as $installment)
+                <tr>
+                    <td>{{ $installment->installment_number }}</td>
 
-            <td>
-                <span class="badge bg-{{ $i->status == 'paid' ? 'success' : 'warning' }}">
-                    {{ $i->status }}
-                </span>
-            </td>
-        </tr>
-        @empty
-        <tr>
-            <td colspan="6" class="text-center text-muted">
-                Belum ada jadwal angsuran
-            </td>
-        </tr>
-        @endforelse
-    </tbody>
-</table>
+                    <td>Rp {{ number_format($installment->principal,0,',','.') }}</td>
+                    <td>Rp {{ number_format($installment->interest,0,',','.') }}</td>
+                    <td><strong>Rp {{ number_format($installment->amount_due,0,',','.') }}</strong></td>
+                    <td>Rp {{ number_format($installment->remaining_balance,0,',','.') }}</td>
+
+                    <td>
+                        @if($installment->status == 'paid')
+                            <span class="badge bg-success">Paid</span>
+                        @else
+                            <span class="badge bg-warning text-dark">Unpaid</span>
+                        @endif
+                    </td>
+
+                    <td class="text-center">
+                        @if($installment->status == 'unpaid')
+                            <form action="{{ route('superadmin.pay', $installment->id) }}" method="POST">
+                                @csrf
+                                <button class="btn btn-success btn-sm">
+                                    💰 Bayar
+                                </button>
+                            </form>
+                        @else
+                            <span class="text-muted">-</span>
+                        @endif
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        Belum ada angsuran
+                    </td>
+                </tr>
+            @endforelse
+
+            </tbody>
+        </table>
+    </div>
+</div>
 
     </div>
 </div>
 
+<!-- MODAL Penolakan -->
+<div class="modal fade" id="rejectModal{{ $loan->id }}">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ route('superadmin.pinjaman.updateStatus', $loan->id) }}">
+            @csrf
+
+            <input type="hidden" name="status" value="rejected">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Tolak Pinjaman</h5>
+                </div>
+
+                <div class="modal-body">
+                    <label>Alasan Penolakan</label>
+                    <textarea name="rejection_reason" class="form-control" required></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-danger">Kirim</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
