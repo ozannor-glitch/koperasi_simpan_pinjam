@@ -81,7 +81,7 @@
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $item->kode_penarikan }}</td>
                             <td>{{ $item->user->name }}</td>
-                            <td>Rp {{ number_format($item->memberSaving->balance, 0, ',', '.') }}</td>
+                            <td> Rp {{ number_format(optional($item->memberSaving)->balance ?? 0, 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($item->jumlah, 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($item->jumlah_diterima, 0, ',', '.') }}</td>
                           <td>

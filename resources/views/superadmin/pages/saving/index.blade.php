@@ -8,20 +8,40 @@
 
 {{-- ================= FORM SETOR ================= --}}
 <div class="card card-custom p-4 mb-4">
-    <h4 class="mb-3">💰 Setor Simpanan</h4>
 
+    {{-- 🔥 HEADER + BUTTON --}}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">💰 Simpanan</h4>
+
+        <div class="d-flex gap-2">
+            <a href="{{ route('superadmin.saving.create') }}" class="btn btn-primary btn-sm">
+                + Setor
+            </a>
+
+            <form action="{{ route('superadmin.saving.bunga') }}" method="POST"
+                onsubmit="return confirm('Generate bunga untuk semua anggota?')">
+                @csrf
+                <button class="btn btn-warning btn-sm">
+                    💰 Bunga
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {{-- 🔥 FILTER ANGGOTA --}}
     <form method="GET" action="{{ route('superadmin.saving.index') }}">
-    <label>Anggota</label>
-    <select name="user_id" class="form-control" onchange="this.form.submit()">
-        <option value="">-- Semua Anggota --</option>
-        @foreach($users as $u)
-            <option value="{{ $u->id }}"
-                {{ request('user_id') == $u->id ? 'selected' : '' }}>
-                {{ $u->name }}
-            </option>
-        @endforeach
-    </select>
-</form>
+        <label>Anggota</label>
+        <select name="user_id" class="form-control" onchange="this.form.submit()">
+            <option value="">-- Semua Anggota --</option>
+            @foreach($users as $u)
+                <option value="{{ $u->id }}"
+                    {{ request('user_id') == $u->id ? 'selected' : '' }}>
+                    {{ $u->name }}
+                </option>
+            @endforeach
+        </select>
+    </form>
+
 </div>
 
 {{-- ================= TOTAL ================= --}}
@@ -34,14 +54,6 @@
                 Rp {{ number_format($savings->sum('balance')) }}
             </h3>
         </div>
-    </div>
-
-    <div class="col-md-6 d-flex align-items-center justify-content-end">
-        <form action="{{ route('superadmin.saving.bunga') }}" method="POST"
-            onsubmit="return confirm('Generate bunga untuk semua anggota?')">
-            @csrf
-            <button class="btn btn-warning">💰 Generate Bunga</button>
-        </form>
     </div>
 
 </div>

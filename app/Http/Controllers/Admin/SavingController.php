@@ -40,15 +40,25 @@ class SavingController extends Controller
         'users','savingTypes','savings','transactions','totalSaldo'
     ));
     }
+public function create()
+{
+    $users = User::where('role','anggota')->get();
+    $savingTypes = SavingType::all();
+
+    return view('superadmin.pages.saving.create', compact('users','savingTypes'));
+}
 
 
     // 🔥 SETOR
     public function store(Request $request)
     {
+        $request->merge([
+            'amount' => (int) str_replace('.', '', $request->amount)
+        ]);
         $request->validate([
             'user_id' => 'required',
             'saving_type_id' => 'required',
-            'amount' => 'required|numeric|min:100000',
+            'amount' => 'required|numeric|min:1000'
         ]);
 
         $userId = $request->input('user_id');
@@ -60,12 +70,12 @@ class SavingController extends Controller
             'saving_type_id' => $typeId
         ]);
 
-        SavingTransaction::create([
-                'user_id' => $userId,
-                'saving_type_id' => $typeId,
-                'transaction_type' => 'setor',
-                'amount' => $amount,
-                'status' => 'pending'
+            SavingTransaction::create([
+            'user_id' => $request->user_id,
+            'saving_type_id' => $request->saving_type_id,
+            'transaction_type' => 'setor',
+            'amount' => $request->amount,
+            'status' => 'pending'
         ]);
 
         return back()->with('success', 'Setoran berhasil');
@@ -132,35 +142,36 @@ public function withdraw(Request $request)
         'user_id' => $trx->user_id,
         'saving_type_id' => $trx->saving_type_id
     ]);
+if ($trx->transaction_type == 'setor') {
 
-    if ($trx->transaction_type == 'setor') {
-        $saving->balance += $trx->amount;
+    $saving->balance += $trx->amount;
 
-    } elseif ($trx->transaction_type == 'tarik') {
+} elseif ($trx->transaction_type == 'tarik') {
 
-        if ($saving->balance < $trx->amount) {
-            return back()->withErrors('Saldo tidak cukup');
-        }
-
-        $saving->balance -= $trx->amount;
+    if ($saving->balance < $trx->amount) {
+        return back()->withErrors('Saldo tidak cukup');
     }
 
-    $saving->save();
+    $saving->balance -= $trx->amount;
+}
 
-    $trx->status = 'approved';
+$saving->save();
+
+$trx->status = 'approved';
+$trx->save();
+
+return back()->with('success','Transaksi disetujui');
+}
+
+// Penolakan Penarikan
+public function reject($id)
+{
+    $trx = SavingTransaction::findOrFail($id);
+    $trx->status = 'rejected';
     $trx->save();
 
-    return back()->with('success','Transaksi disetujui');
+    return back()->with('success','Transaksi ditolak');
 }
-    //Penolakan Penarikan
-    public function reject($id)
-    {
-        $trx = SavingTransaction::findOrFail($id);
-        $trx->status = 'rejected';
-        $trx->save();
-
-        return back()->with('success','Transaksi ditolak');
-    }
 
     //Histori Transaksi
     public function transactions()

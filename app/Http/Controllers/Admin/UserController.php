@@ -47,7 +47,7 @@ public function store(Request $request)
         $rules['KTP'] = 'required|image|mimes:jpeg,png,jpg|max:2048';
         $rules['nik'] = 'required|string|max:200';
     }
-
+    
     $request->validate($rules);
 
     // upload KTP

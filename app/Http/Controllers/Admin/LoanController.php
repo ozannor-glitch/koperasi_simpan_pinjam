@@ -7,6 +7,9 @@ use App\Models\Loan;
 use App\Models\LoanApproval;
 use App\Models\LoanType;
 use App\Models\User;
+use App\Models\MemberSaving;
+use App\Models\SavingTransaction;
+use App\Models\SavingType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +18,10 @@ class LoanController extends Controller
 {
     public function index()
     {
-        $loans = Loan::with('loanType')->latest()->get();
+        $loans = Loan::with(['loanType','user'])
+            ->latest()
+            ->get();
+
         return view('superadmin.pages.pinjaman.index', compact('loans'));
     }
 
@@ -72,16 +78,16 @@ class LoanController extends Controller
         );
     }
 
-    // 🔥 SIMPAN DATA
-    $loan = Loan::create([
-        'user_id' => $request->user_id,
-        'loan_type_id' => $request->loan_type_id,
-        'total_amount' => $pinjaman,
-        'tenor' => $request->tenor,
-        'collateral_name' => $request->collateral_name,
-        'collateral_value' => $jaminan,
-        'status' => 'pending'
-    ]);
+   $loan = Loan::create([
+    'user_id' => $request->user_id,
+    'loan_type_id' => $request->loan_type_id,
+    'total_amount' => $pinjaman,
+    'withdrawable_amount' => $pinjaman, // ✅ TAMBAH INI
+    'tenor' => $request->tenor,
+    'collateral_name' => $request->collateral_name,
+    'collateral_value' => $jaminan,
+    'status' => 'pending'
+]);
 
     // 🔥 UPLOAD FOTO
     if ($request->hasFile('collateral_photo')) {
@@ -155,22 +161,42 @@ public function updateStatus(Request $request, $id)
 {
     $loan = Loan::with('loanType')->findOrFail($id);
 
-    $loan->status = $request->status;
+    DB::transaction(function () use ($loan, $request) {
 
-    if ($request->status == 'rejected') {
-        $loan->rejection_reason = $request->rejection_reason;
-    }
+        $loan->status = $request->status;
 
-    $loan->save();
-
-    // 🔥 AUTO GENERATE CICILAN
-    if ($request->status == 'approved') {
-
-        // ❗ jangan dobel generate
-        if ($loan->installments()->count() == 0) {
-            $this->generateInstallments($loan); // ✅ FIX
+        if ($request->status == 'approved') {
+            $loan->approved_at = now();
         }
-    }
+
+        if ($request->status == 'rejected') {
+            $loan->rejection_reason = $request->rejection_reason;
+        }
+
+        $loan->save();
+
+        // 🔥 JIKA APPROVED
+        if ($request->status == 'approved') {
+
+            // 🔥 CICILAN
+            if ($loan->installments()->count() == 0) {
+                $this->generateInstallments($loan);
+            }
+
+          $loanTypeSaving = SavingType::where('name','Pinjaman')->first();
+
+            SavingTransaction::create([
+                'user_id' => $loan->user_id,
+                'saving_type_id' => $loanTypeSaving->id,
+                'transaction_type' => 'loan_disbursement',
+                'amount' => $loan->total_amount,
+                'status' => 'success',
+                'reference_id' => $loan->id,
+                'reference_type' => 'loan'
+            ]);
+        }
+
+    }); // ✅ WAJIB ADA INI
 
     return back()->with('success','Status diperbarui');
 }

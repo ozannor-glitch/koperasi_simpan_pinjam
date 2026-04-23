@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\JournalService;
 use App\Models\Account;
+use App\Models\MemberSaving;
+use App\Models\SavingTransaction;
 
 class LoanApprovalController extends Controller
 {
@@ -42,6 +44,7 @@ class LoanApprovalController extends Controller
     $loan->update([
         'status' => 'approved'
     ]);
+
 
     // 🔥 AMBIL ACCOUNT (JANGAN HARDCODE)
     $kas = Account::where('name', 'Kas')->first();

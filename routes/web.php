@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GeneralLedgerController;
 use App\Http\Controllers\Admin\IncomeStatementController;
 use App\Http\Controllers\Admin\JournalController as AdminJournalController;
+use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\LoanApprovalController;
 use App\Http\Controllers\Admin\LoanController;
 use App\Http\Controllers\Admin\LoanInstallmentController;
@@ -113,25 +114,38 @@ Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
 //CRUD Tabel Penarikan
 Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin')
     ->name('superadmin.')->group(function () {
+ Route::get('/penarikan', [PenarikanController::class, 'index'])
+        ->name('penarikan.index');
 
-    Route::get('/penarikan', [PenarikanController::class, 'index'])->name('penarikan.index');
-    // create & store
-    Route::get('/penarikan/create', [PenarikanController::class, 'create'])->name('penarikan.create');
-    Route::post('/penarikan/store', [PenarikanController::class, 'store'])->name('penarikan.store');
+    Route::get('/penarikan/create', [PenarikanController::class, 'create'])
+        ->name('penarikan.create'); // ✅
 
-    // edit & update
-    Route::get('/penarikan/{id}/edit', [PenarikanController::class, 'edit'])->name('penarikan.edit');
-    Route::put('/penarikan/{id}', [PenarikanController::class, 'update'])->name('penarikan.update');
+    Route::post('/penarikan/store', [PenarikanController::class, 'store'])
+    ->name('penarikan.store');
 
-    // delete
-    Route::delete('/penarikan/{id}', [PenarikanController::class, 'destroy'])->name('penarikan.destroy');
-        Route::get('/penarikan/{id}', [PenarikanController::class, 'show'])->name('penarikan.show');
+    Route::get('/penarikan/{id}/edit', [PenarikanController::class, 'edit'])
+        ->name('penarikan.edit');
 
-    Route::post('/penarikan/{id}/approve', [PenarikanController::class, 'approve'])->name('penarikan.approve');
-    Route::post('/penarikan/{id}/reject/', [PenarikanController::class, 'reject'])->name('penarikan.reject');
-    Route::post('/penarikan/{id}/complete', [PenarikanController::class, 'complete'])->name('penarikan.complete');
+    Route::put('/penarikan/{id}', [PenarikanController::class, 'update'])
+        ->name('penarikan.update');
+
+    Route::delete('/penarikan/{id}', [PenarikanController::class, 'destroy'])
+        ->name('penarikan.destroy');
+
+    Route::get('/penarikan/{id}', [PenarikanController::class, 'show'])
+        ->name('penarikan.show');
+
+    Route::post('/penarikan/{id}/approve', [PenarikanController::class, 'approve'])
+        ->name('penarikan.approve');
+
+    Route::post('/penarikan/{id}/reject', [PenarikanController::class, 'reject'])
+        ->name('penarikan.reject');
+
+    Route::post('/penarikan/{id}/complete', [PenarikanController::class, 'complete'])
+        ->name('penarikan.complete');
+
     Route::post('/penarikan/{id}/cancel', [PenarikanController::class, 'cancel'])
-    ->name('penarikan.cancel');
+        ->name('penarikan.cancel');
 });
 
 //CRUD Tabel Pinjaman
@@ -178,3 +192,24 @@ Route::middleware(['auth', 'role:super_admin,admin'])->prefix('superadmin/akunta
     ->name('neraca');
 
 });
+
+//Laporan Anggota
+Route::middleware(['auth', 'role:super_admin,admin'])
+    ->prefix('superadmin')
+    ->name('superadmin.')
+    ->group(function () {
+
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+
+        Route::get('/anggota', [LaporanController::class, 'anggota'])
+            ->name('anggota');
+
+        Route::get('/pdf', [LaporanController::class, 'pdf'])
+            ->name('pdf');
+
+        Route::get('/slip', [LaporanController::class, 'slip'])
+            ->name('slip');
+
+    });
+});
+

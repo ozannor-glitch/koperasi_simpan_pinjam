@@ -90,19 +90,52 @@
                                 Neraca Keuangan
                             </a>
 
+
                         </nav>
-                    </div>
+
+
 
                 </div>
-            </div>
+                 {{-- 🔥 MENU LAPORAN --}}
+<a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#menuLaporan">
+    <div class="sb-nav-link-icon">
+        <i class="fa-solid fa-receipt"></i>
+    </div>
+    Laporan
+    <div class="sb-sidenav-collapse-arrow">
+        <i class="fas fa-angle-down"></i>
+    </div>
+</a>
+
+<div class="collapse {{ request()->is('superadmin/laporan*') ? 'show' : '' }}" id="menuLaporan">
+    <nav class="sb-sidenav-menu-nested nav">
+
+        <a class="nav-link {{ request()->is('superadmin/laporan/anggota*') ? 'active' : '' }}"
+           href="{{ route('superadmin.laporan.anggota') }}">
+            Laporan Anggota
+        </a>
+
+        {{--
+        <a class="nav-link {{ request()->is('superadmin/laporan/pdf*') ? 'active' : '' }}"
+           href="{{ route('superadmin.laporan.pdf') }}">
+            PDF
+        </a>
+
+        <a class="nav-link {{ request()->is('superadmin/laporan/slip*') ? 'active' : '' }}"
+           href="{{ route('superadmin.laporan.slip') }}">
+            Slip Angsuran
+        </a>
+        --}}
+
+    </nav>
+</div>
+
 
             {{-- FOOTER --}}
             <div class="sb-sidenav-footer">
                 <div class="small">Logged in as:</div>
                 {{ Auth::user()->name }}
             </div>
-
-        </nav>
-
+</nav>
     </div>
 </div>

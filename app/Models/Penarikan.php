@@ -5,18 +5,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Penarikan extends Model
 {
-    protected $fillable = [
-        'user_id',
-        'member_saving_id',
-        'kode_penarikan',
-        'jumlah',
-        'biaya_admin',
-        'jumlah_diterima',
-        'bank',
-        'no_rekening',
-        'nama_rekening',
-        'status'
-    ];
+   protected $fillable = [
+    'kode_penarikan',
+    'user_id',
+    'member_saving_id',
+    'source_type',
+    'source_id',
+    'jumlah',
+    'jumlah_diterima',
+    'bank',
+    'no_rekening',
+    'nama_rekening',
+    'status',
+];
 
     public function user()
     {

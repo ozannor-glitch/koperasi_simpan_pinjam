@@ -64,10 +64,18 @@
 
             <div class="mb-3">
                 <label>Role</label>
-                <select name="role" class="form-control">
+                <select name="role" id="role" class="form-control">
                     <option value="admin_keuangan">Admin Keuangan</option>
                     <option value="teller">Teller</option>
-                    <option value="teller">Anggota</option>
+                    <option value="anggota">Anggota</option>
+                </select>
+            </div>
+            <div class="mb-3" id="statusWrapper" style="display:none;">
+                <label>Status Anggota</label>
+                <select name="status" class="form-control">
+                    <option value="calon">Calon</option>
+                    <option value="aktif">Aktif</option>
+                    <option value="nonaktif">Non Aktif</option>
                 </select>
             </div>
 
@@ -79,4 +87,25 @@
     </div>
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const roleSelect = document.getElementById('role');
+    const statusWrapper = document.getElementById('statusWrapper');
+
+    function toggleStatus() {
+        if (roleSelect.value === 'anggota') {
+            statusWrapper.style.display = 'block';
+        } else {
+            statusWrapper.style.display = 'none';
+        }
+    }
+
+    // trigger saat load
+    toggleStatus();
+
+    // trigger saat berubah
+    roleSelect.addEventListener('change', toggleStatus);
+});
+</script>
 @endsection
