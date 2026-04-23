@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class LoanController extends Controller
 {
@@ -24,7 +25,6 @@ class LoanController extends Controller
         try {
             $loanTypes = LoanType::all();
 
-            // Format response
             $formattedTypes = $loanTypes->map(function($type) {
                 return [
                     'id' => $type->id,
@@ -53,6 +53,15 @@ class LoanController extends Controller
     /**
      * Submit loan application
      * Endpoint: POST /api/loans/submit
+     *
+     * Request body (multipart/form-data):
+     * - loan_type_id (required)
+     * - amount (required)
+     * - tenor (required)
+     * - akad (required) - PDF file
+     * - collateral_name (required) - nama jaminan
+     * - collateral_value (required) - nilai jaminan
+     * - collateral_photo (required) - foto jaminan
      */
     public function submitLoan(Request $request)
     {
@@ -61,6 +70,10 @@ class LoanController extends Controller
                 'loan_type_id' => 'required|exists:loan_types,id',
                 'amount' => 'required|numeric|min:100000',
                 'tenor' => 'required|integer|min:1|max:24',
+                'akad' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
+                'collateral_name' => 'required|string|max:255',
+                'collateral_value' => 'required|numeric|min:0',
+                'collateral_photo' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Foto max 2MB
             ]);
 
             if ($validator->fails()) {
@@ -90,16 +103,45 @@ class LoanController extends Controller
                 ], 422);
             }
 
+            // Validasi data bank dari user
+            if (!$user->nama_bank || !$user->atas_nama || !$user->no_rek) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Lengkapi data bank terlebih dahulu di profile Anda',
+                ], 422);
+            }
+
             DB::beginTransaction();
 
-            // Buat pengajuan pinjaman
+            // Upload Akad PDF
+            $akadPath = null;
+            if ($request->hasFile('akad')) {
+                $akadFile = $request->file('akad');
+                $akadPath = $akadFile->store('loans/akad', 'public');
+            }
+
+            // Upload Collateral Photo
+            $collateralPhotoPath = null;
+            if ($request->hasFile('collateral_photo')) {
+                $photoFile = $request->file('collateral_photo');
+                $collateralPhotoPath = $photoFile->store('loans/collateral', 'public');
+            }
+
+            // Buat pengajuan pinjaman dengan data lengkap
             $loan = Loan::create([
                 'user_id' => $user->id,
                 'loan_type_id' => $request->loan_type_id,
                 'total_amount' => $request->amount,
                 'tenor' => $request->tenor,
-                'status' => 'pending', // pending, approved, rejected, disbursed, completed
+                'status' => 'pending',
                 'submitted_at' => now(),
+                'akad' => $akadPath,
+                'recipient_name' => $user->atas_nama,
+                'bank_name' => $user->nama_bank,
+                'account_number' => $user->no_rek,
+                'collateral_name' => $request->collateral_name,
+                'collateral_value' => $request->collateral_value,
+                'collateral_photo' => $collateralPhotoPath,
             ]);
 
             DB::commit();
@@ -113,6 +155,13 @@ class LoanController extends Controller
                     'amount' => $request->amount,
                     'tenor' => $request->tenor,
                     'loan_type' => $loanType->name,
+                    'recipient_name' => $user->atas_nama,
+                    'bank_name' => $user->nama_bank,
+                    'account_number' => $user->no_rek,
+                    'collateral_name' => $request->collateral_name,
+                    'collateral_value' => $request->collateral_value,
+                    'akad_url' => $akadPath ? asset('storage/' . $akadPath) : null,
+                    'collateral_photo_url' => $collateralPhotoPath ? asset('storage/' . $collateralPhotoPath) : null,
                 ]
             ], 200);
 
@@ -138,7 +187,6 @@ class LoanController extends Controller
             $query = Loan::with(['loanType', 'installments'])
                 ->where('user_id', $user->id);
 
-            // Filter by status
             if ($request->has('status')) {
                 $query->where('status', $request->status);
             }
@@ -157,10 +205,15 @@ class LoanController extends Controller
                     'submitted_at' => $loan->submitted_at,
                     'submitted_at_formatted' => $loan->submitted_at ? $loan->submitted_at->format('d M Y') : null,
                     'approved_at' => $loan->approved_at,
+                    'approved_at_formatted' => $loan->approved_at ? $loan->approved_at->format('d M Y') : null,
                     'disbursed_at' => $loan->disbursed_at,
+                    'disbursed_at_formatted' => $loan->disbursed_at ? $loan->disbursed_at->format('d M Y') : null,
                     'installments_count' => $loan->installments->count(),
                     'installments_paid' => $loan->installments->where('status', 'paid')->count(),
                     'next_installment' => $this->getNextInstallment($loan),
+                    'collateral_name' => $loan->collateral_name,
+                    'collateral_value' => $loan->collateral_value,
+                    'collateral_value_formatted' => 'Rp ' . number_format($loan->collateral_value, 0, ',', '.'),
                 ];
             });
 
@@ -199,7 +252,6 @@ class LoanController extends Controller
                 ], 404);
             }
 
-            // Hitung sisa pinjaman
             $totalPaid = 0;
             foreach ($loan->installments as $installment) {
                 foreach ($installment->payments as $payment) {
@@ -208,7 +260,6 @@ class LoanController extends Controller
             }
             $remainingAmount = $loan->total_amount - $totalPaid;
 
-            // Format installments
             $installments = $loan->installments->map(function($installment) {
                 $isOverdue = $installment->due_date < now() && $installment->status == 'unpaid';
 
@@ -253,6 +304,14 @@ class LoanController extends Controller
                     'approved_at_formatted' => $loan->approved_at ? $loan->approved_at->format('d M Y') : null,
                     'disbursed_at' => $loan->disbursed_at,
                     'disbursed_at_formatted' => $loan->disbursed_at ? $loan->disbursed_at->format('d M Y') : null,
+                    'recipient_name' => $loan->recipient_name,
+                    'bank_name' => $loan->bank_name,
+                    'account_number' => $loan->account_number,
+                    'collateral_name' => $loan->collateral_name,
+                    'collateral_value' => $loan->collateral_value,
+                    'collateral_value_formatted' => 'Rp ' . number_format($loan->collateral_value, 0, ',', '.'),
+                    'akad_url' => $loan->akad ? asset('storage/' . $loan->akad) : null,
+                    'collateral_photo_url' => $loan->collateral_photo ? asset('storage/' . $loan->collateral_photo) : null,
                     'installments' => $installments,
                 ]
             ], 200);
@@ -288,7 +347,6 @@ class LoanController extends Controller
             $user = Auth::user();
             $installment = LoanInstallment::with('loan')->find($request->installment_id);
 
-            // Cek kepemilikan
             if ($installment->loan->user_id != $user->id) {
                 return response()->json([
                     'success' => false,
@@ -296,7 +354,6 @@ class LoanController extends Controller
                 ], 403);
             }
 
-            // Cek apakah sudah lunas
             if ($installment->status == 'paid') {
                 return response()->json([
                     'success' => false,
@@ -307,12 +364,11 @@ class LoanController extends Controller
             $amount = $request->amount;
             $amountDue = $installment->amount_due;
 
-            // Hitung denda jika telat
             $penalty = 0;
             if ($installment->due_date < now()) {
                 $daysLate = now()->diffInDays($installment->due_date);
-                $penalty = $amountDue * 0.001 * $daysLate; // Denda 0.1% per hari
-                $penalty = min($penalty, $amountDue * 0.1); // Maksimal denda 10%
+                $penalty = $amountDue * 0.001 * $daysLate;
+                $penalty = min($penalty, $amountDue * 0.1);
             }
 
             $totalDue = $amountDue + $penalty;
@@ -326,7 +382,6 @@ class LoanController extends Controller
 
             DB::beginTransaction();
 
-            // Catat pembayaran
             $payment = LoanInstallmentPayment::create([
                 'loan_installment_id' => $installment->id,
                 'amount_paid' => $amount,
@@ -334,11 +389,9 @@ class LoanController extends Controller
                 'paid_at' => now(),
             ]);
 
-            // Update status cicilan
             $installment->status = 'paid';
             $installment->save();
 
-            // Cek apakah semua cicilan sudah lunas
             $unpaidInstallments = LoanInstallment::where('loan_id', $installment->loan_id)
                 ->where('status', 'unpaid')
                 ->count();
@@ -389,24 +442,20 @@ class LoanController extends Controller
 
             $totalActiveLoan = $activeLoans->sum('total_amount');
 
-            // Hitung total cicilan yang belum dibayar
             $unpaidInstallments = LoanInstallment::whereHas('loan', function($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->where('status', 'unpaid')->get();
 
             $totalUnpaid = $unpaidInstallments->sum('amount_due');
 
-            // Hitung tunggakan (melewati due date)
             $overdueInstallments = $unpaidInstallments->filter(function($installment) {
                 return $installment->due_date < now();
             });
 
             $totalOverdue = $overdueInstallments->sum('amount_due');
 
-            // Hitung total pinjaman yang sudah diajukan
             $totalSubmitted = Loan::where('user_id', $user->id)->sum('total_amount');
 
-            // Hitung total yang sudah dibayar
             $totalPaid = LoanInstallmentPayment::whereHas('installment.loan', function($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->sum('amount_paid');

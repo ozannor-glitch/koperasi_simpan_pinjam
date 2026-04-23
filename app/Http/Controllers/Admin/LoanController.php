@@ -27,85 +27,75 @@ class LoanController extends Controller
 
     public function create()
     {
-        $users = User::where('role','anggota')
-            ->select('id','name')
+        $users = User::where('role', 'anggota')
+            ->select('id', 'name')
             ->get();
         $loanTypes = LoanType::all();
-        return view('superadmin.pages.pinjaman.create', compact('loanTypes','users'));
+        return view('superadmin.pages.pinjaman.create', compact('loanTypes', 'users'));
     }
 
- public function store(Request $request)
+public function store(Request $request)
 {
-    // 🔥 BERSIHKAN INPUT ANGKA
-    $collateral = preg_replace('/\D/', '', $request->collateral_value ?? '');
-    $amount = preg_replace('/\D/', '', $request->total_amount ?? '');
+    try {
 
-    $request->merge([
-        'collateral_value' => (int) $collateral,
-        'total_amount' => (int) $amount,
-    ]);
+        DB::transaction(function () use ($request) {
 
-    // 🔥 VALIDASI
-    $request->validate([
-        'user_id' => 'required|exists:users,id',
-        'loan_type_id' => 'required|exists:loan_types,id',
-        'total_amount' => 'required|numeric|min:1',
-        'tenor' => 'required|integer|min:1',
+            $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'loan_type_id' => 'required|exists:loan_types,id',
+                'total_amount' => 'required|numeric|min:1',
+                'tenor' => 'required|integer|min:1'
+            ]);
 
-        'collateral_name' => 'required',
-        'collateral_value' => 'required|numeric|min:1',
-        'collateral_photo' => 'nullable|image|mimes:jpg,png,jpeg|max:2048'
-    ]);
+            $type = LoanType::findOrFail($request->loan_type_id);
 
-    $type = LoanType::findOrFail($request->loan_type_id);
+            $jaminan  = (int) $request->collateral_value;
+            $pinjaman = (int) $request->total_amount;
 
-    $jaminan  = (int) $request->collateral_value;
-    $pinjaman = (int) $request->total_amount;
+            $ratio = (int) ($type->collateral_ratio ?? 70);
+            $maxByCollateral = intdiv($jaminan * $ratio, 100);
+            $maxPlafon = (int) $type->max_plafon;
+            $finalMax = min($maxByCollateral, $maxPlafon);
 
-    // 🔥 BATAS JAMINAN
-    $ratio = (int) ($type->collateral_ratio ?? 70);
-    $maxByCollateral = intdiv($jaminan * $ratio, 100);
+            if ($pinjaman > $finalMax) {
+                throw new \Exception("Max pinjaman: Rp " . number_format($finalMax));
+            }
 
-    // 🔥 BATAS PRODUK
-    $maxPlafon = (int) $type->max_plafon;
+            $loan = Loan::create([
+                'user_id' => $request->user_id,
+                'loan_type_id' => $request->loan_type_id,
+                'total_amount' => $pinjaman,
+                'withdrawable_amount' => $pinjaman,
+                'tenor' => $request->tenor,
+                'collateral_name' => $request->collateral_name,
+                'collateral_value' => $jaminan,
+                'status' => 'pending'
+            ]);
 
-    // 🔥 FINAL LIMIT (AMBIL YANG TERKECIL)
-    $finalMax = min($maxByCollateral, $maxPlafon);
+            $levels = config('loan.approval_levels', [1,2,3]);
 
-    if ($pinjaman > $finalMax) {
-        return back()->withInput()->with('error',
-            "Max pinjaman: Rp " . number_format($finalMax)
-        );
+            foreach ($levels as $level) {
+                LoanApproval::create([
+                    'loan_id' => $loan->id,
+                    'level' => $level,
+                    'status' => 'pending'
+                ]);
+            }
+
+        });
+
+        return redirect()->route('superadmin.pages.pinjaman.index')
+            ->with('success', 'Pengajuan berhasil');
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Gagal: ' . $e->getMessage());
     }
-
-   $loan = Loan::create([
-    'user_id' => $request->user_id,
-    'loan_type_id' => $request->loan_type_id,
-    'total_amount' => $pinjaman,
-    'withdrawable_amount' => $pinjaman, // ✅ TAMBAH INI
-    'tenor' => $request->tenor,
-    'collateral_name' => $request->collateral_name,
-    'collateral_value' => $jaminan,
-    'status' => 'pending'
-]);
-
-    // 🔥 UPLOAD FOTO
-    if ($request->hasFile('collateral_photo')) {
-        $path = $request->file('collateral_photo')->store('collateral', 'public');
-        $loan->collateral_photo = $path;
-        $loan->save();
+}
+public function show($id)
+    {
+        $loan = Loan::with('installments', 'loanType')->findOrFail($id);
+        return view('superadmin.pages.pinjaman.show', compact('loan'));
     }
-
-    return redirect()->route('superadmin.pinjaman.index')
-        ->with('success', 'Pengajuan berhasil');
-}
-    public function show($id)
-{
-    $loan = Loan::with('installments','loanType','user')->findOrFail($id);
-
-    // ✅ HARUS DI LUAR if
-    return view('superadmin.pages.pinjaman.show', compact('loan'));
-}
 
 public function generateInstallments($loan)
 {

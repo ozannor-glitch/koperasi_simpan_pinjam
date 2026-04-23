@@ -19,7 +19,7 @@ class Loan extends Model
     'collateral_name',
     'collateral_value',
     'collateral_photo',
-    'akad_file',
+    'akad',
     'rejection_reason'
 ];
     public function index()
